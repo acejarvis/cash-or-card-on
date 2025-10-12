@@ -1,0 +1,5 @@
+.account-page { background: var(--surface); padding: 18px; border-radius: 12px; box-shadow: var(--shadow-sm); max-width: 640px; margin: 18px auto; }
+.account-header { display: flex; align-items: center; justify-content: space-between; }
+.account-role { color: var(--muted); font-weight: 700; }
+.account-section { margin-top: 12px; display: grid; gap: 8px; }
+.field { color: var(--muted); }

@@ -1,0 +1,796 @@
+{
+  "restaurants": [
+    {
+      "restaurant_id": 1,
+      "name": "ichiban",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "123 Sushi St, North York, ON",
+      "city": "North York",
+      "status": "active",
+      "categories": [
+        { "category_id": 1, "name": "Japanese", "icon": "🍜" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "11:00", "close_time": "22:00" },
+        { "day_of_week": "Tuesday", "open_time": "11:00", "close_time": "22:00" },
+        { "day_of_week": "Wednesday", "open_time": "11:00", "close_time": "22:00" },
+        { "day_of_week": "Thursday", "open_time": "11:00", "close_time": "22:00" },
+        { "day_of_week": "Friday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Saturday", "open_time": "12:00", "close_time": "23:00" },
+        { "day_of_week": "Sunday", "open_time": "12:00", "close_time": "21:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 1, "percentage": 2, "display_label": "2% Discount" }
+      ],
+      "ratings": [
+        { "rating_id": 1, "user_id": 101, "rating": 5 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 1, "user_id": 101, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 2,
+      "name": "cafe n one",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "456 Coffee Ave, Downtown, ON",
+      "city": "Downtown",
+      "status": "active",
+      "categories": [
+        { "category_id": 2, "name": "Cafe", "icon": "☕" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "07:00", "close_time": "20:00" },
+        { "day_of_week": "Tuesday", "open_time": "07:00", "close_time": "20:00" },
+        { "day_of_week": "Wednesday", "open_time": "07:00", "close_time": "20:00" },
+        { "day_of_week": "Thursday", "open_time": "07:00", "close_time": "20:00" },
+        { "day_of_week": "Friday", "open_time": "07:00", "close_time": "20:00" },
+        { "day_of_week": "Saturday", "open_time": "07:00", "close_time": "20:00" },
+        { "day_of_week": "Sunday", "open_time": "07:00", "close_time": "20:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 2, "percentage": 10, "display_label": "10% Discount" }
+      ],
+      "ratings": [
+        { "rating_id": 2, "user_id": 102, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 2, "user_id": 102, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 3,
+      "name": "后海味",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "789 Spicy Rd, Scarborough, ON",
+      "city": "Scarborough",
+      "status": "active",
+      "categories": [
+        { "category_id": 3, "name": "Chinese", "icon": "🥡" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Tuesday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Wednesday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Thursday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Friday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Saturday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Sunday", "open_time": "12:00", "close_time": "21:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 3, "percentage": 10, "display_label": "10% Discount" }
+      ],
+      "ratings": [
+        { "rating_id": 3, "user_id": 103, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 3, "user_id": 103, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 4,
+      "name": "恰鱼",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "123 Fish St, Markham, ON",
+      "city": "Markham",
+      "status": "active",
+      "categories": [
+        { "category_id": 4, "name": "Chinese", "icon": "🥡" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Tuesday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Wednesday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Thursday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Friday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Saturday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Sunday", "open_time": "12:00", "close_time": "21:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 4, "percentage": 0, "display_label": "No Discount" }
+      ],
+      "ratings": [
+        { "rating_id": 4, "user_id": 104, "rating": 3 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 4, "user_id": 104, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 5,
+      "name": "孙记",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "456 Noodle Ave, Richmond Hill, ON",
+      "city": "Richmond Hill",
+      "status": "active",
+      "categories": [
+        { "category_id": 5, "name": "Chinese", "icon": "🥡" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Tuesday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Wednesday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Thursday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Friday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Saturday", "open_time": "12:00", "close_time": "21:00" },
+        { "day_of_week": "Sunday", "open_time": "12:00", "close_time": "21:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 5, "percentage": 0, "display_label": "No Discount" }
+      ],
+      "ratings": [
+        { "rating_id": 5, "user_id": 105, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 5, "user_id": 105, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 6,
+      "name": "Pasta House",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "321 Pasta Blvd, Vaughan, ON",
+      "city": "Vaughan",
+      "status": "active",
+      "categories": [
+        { "category_id": 6, "name": "Italian", "icon": "🍝" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Tuesday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Wednesday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Thursday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Friday", "open_time": "10:00", "close_time": "23:00" },
+        { "day_of_week": "Saturday", "open_time": "10:00", "close_time": "23:00" },
+        { "day_of_week": "Sunday", "open_time": "10:00", "close_time": "22:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 6, "percentage": 5, "display_label": "5% Discount" }
+      ],
+      "ratings": [
+        { "rating_id": 6, "user_id": 106, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 6, "user_id": 106, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 7,
+      "name": "Curry Corner",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "654 Curry Rd, Brampton, ON",
+      "city": "Brampton",
+      "status": "active",
+      "categories": [
+        { "category_id": 7, "name": "Indian", "icon": "🍛" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Tuesday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Wednesday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Thursday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Friday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Saturday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Sunday", "open_time": "11:00", "close_time": "23:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 7, "percentage": 15, "display_label": "15% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 7, "user_id": 107, "rating": 5 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 7, "user_id": 107, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 8,
+      "name": "Taco Palace",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "987 Taco St, Mississauga, ON",
+      "city": "Mississauga",
+      "status": "active",
+      "categories": [
+        { "category_id": 8, "name": "Mexican", "icon": "🌮" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Tuesday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Wednesday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Thursday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Friday", "open_time": "10:00", "close_time": "23:00" },
+        { "day_of_week": "Saturday", "open_time": "10:00", "close_time": "23:00" },
+        { "day_of_week": "Sunday", "open_time": "10:00", "close_time": "22:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 8, "percentage": 10, "display_label": "10% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 8, "user_id": 108, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 8, "user_id": 108, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 9,
+      "name": "Burger Queen",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "159 Burger St, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 9, "name": "American", "icon": "🍔" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "09:00", "close_time": "21:00" },
+        { "day_of_week": "Tuesday", "open_time": "09:00", "close_time": "21:00" },
+        { "day_of_week": "Wednesday", "open_time": "09:00", "close_time": "21:00" },
+        { "day_of_week": "Thursday", "open_time": "09:00", "close_time": "21:00" },
+        { "day_of_week": "Friday", "open_time": "09:00", "close_time": "21:00" },
+        { "day_of_week": "Saturday", "open_time": "09:00", "close_time": "21:00" },
+        { "day_of_week": "Sunday", "open_time": "09:00", "close_time": "21:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 9, "percentage": 5, "display_label": "5% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 9, "user_id": 109, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 9, "user_id": 109, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 10,
+      "name": "Sushi World",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "753 Sushi Ave, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 1, "name": "Japanese", "icon": "🍜" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "11:00", "close_time": "22:00" },
+        { "day_of_week": "Tuesday", "open_time": "11:00", "close_time": "22:00" },
+        { "day_of_week": "Wednesday", "open_time": "11:00", "close_time": "22:00" },
+        { "day_of_week": "Thursday", "open_time": "11:00", "close_time": "22:00" },
+        { "day_of_week": "Friday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Saturday", "open_time": "12:00", "close_time": "23:00" },
+        { "day_of_week": "Sunday", "open_time": "12:00", "close_time": "21:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 10, "percentage": 2, "display_label": "2% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 10, "user_id": 1010, "rating": 5 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 10, "user_id": 1010, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 11,
+      "name": "Steak House",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "852 Meat St, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 10, "name": "Steakhouse", "icon": "🥩" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "17:00", "close_time": "23:00" },
+        { "day_of_week": "Tuesday", "open_time": "17:00", "close_time": "23:00" },
+        { "day_of_week": "Wednesday", "open_time": "17:00", "close_time": "23:00" },
+        { "day_of_week": "Thursday", "open_time": "17:00", "close_time": "23:00" },
+        { "day_of_week": "Friday", "open_time": "17:00", "close_time": "23:00" },
+        { "day_of_week": "Saturday", "open_time": "17:00", "close_time": "23:00" },
+        { "day_of_week": "Sunday", "open_time": "17:00", "close_time": "23:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 11, "percentage": 10, "display_label": "10% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 11, "user_id": 111, "rating": 5 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 11, "user_id": 111, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 12,
+      "name": "Seafood Delight",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "963 Ocean Ave, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 11, "name": "Seafood", "icon": "🦞" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Tuesday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Wednesday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Thursday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Friday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Saturday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Sunday", "open_time": "12:00", "close_time": "22:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 12, "percentage": 5, "display_label": "5% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 12, "user_id": 112, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 12, "user_id": 112, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 13,
+      "name": "Veggie Grill",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "357 Veggie Rd, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 12, "name": "Vegetarian", "icon": "🥗" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "10:00", "close_time": "20:00" },
+        { "day_of_week": "Tuesday", "open_time": "10:00", "close_time": "20:00" },
+        { "day_of_week": "Wednesday", "open_time": "10:00", "close_time": "20:00" },
+        { "day_of_week": "Thursday", "open_time": "10:00", "close_time": "20:00" },
+        { "day_of_week": "Friday", "open_time": "10:00", "close_time": "20:00" },
+        { "day_of_week": "Saturday", "open_time": "10:00", "close_time": "20:00" },
+        { "day_of_week": "Sunday", "open_time": "10:00", "close_time": "20:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 13, "percentage": 0, "display_label": "No Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 13, "user_id": 113, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 13, "user_id": 113, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 14,
+      "name": "BBQ Barn",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "258 Grill St, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 13, "name": "BBQ", "icon": "🍖" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Tuesday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Wednesday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Thursday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Friday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Saturday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Sunday", "open_time": "12:00", "close_time": "22:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 14, "percentage": 10, "display_label": "10% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 14, "user_id": 114, "rating": 5 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 14, "user_id": 114, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 15,
+      "name": "Dim Sum House",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "159 Dumpling Ln, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 14, "name": "Chinese", "icon": "🥟" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Tuesday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Wednesday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Thursday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Friday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Saturday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Sunday", "open_time": "10:00", "close_time": "22:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 15, "percentage": 0, "display_label": "No Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 15, "user_id": 115, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 15, "user_id": 115, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 16,
+      "name": "Crepe Cafe",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "753 Crepe St, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 15, "name": "French", "icon": "🥞" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "09:00", "close_time": "19:00" },
+        { "day_of_week": "Tuesday", "open_time": "09:00", "close_time": "19:00" },
+        { "day_of_week": "Wednesday", "open_time": "09:00", "close_time": "19:00" },
+        { "day_of_week": "Thursday", "open_time": "09:00", "close_time": "19:00" },
+        { "day_of_week": "Friday", "open_time": "09:00", "close_time": "19:00" },
+        { "day_of_week": "Saturday", "open_time": "09:00", "close_time": "19:00" },
+        { "day_of_week": "Sunday", "open_time": "09:00", "close_time": "19:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 16, "percentage": 5, "display_label": "5% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 16, "user_id": 116, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 16, "user_id": 116, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 17,
+      "name": "Wings Factory",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "852 Wing St, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 16, "name": "American", "icon": "🍗" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Tuesday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Wednesday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Thursday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Friday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Saturday", "open_time": "11:00", "close_time": "23:00" },
+        { "day_of_week": "Sunday", "open_time": "11:00", "close_time": "23:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 17, "percentage": 10, "display_label": "10% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 17, "user_id": 117, "rating": 5 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 17, "user_id": 117, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 18,
+      "name": "Pizza Place",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "963 Pizza Rd, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 17, "name": "Italian", "icon": "🍕" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Tuesday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Wednesday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Thursday", "open_time": "10:00", "close_time": "22:00" },
+        { "day_of_week": "Friday", "open_time": "10:00", "close_time": "23:00" },
+        { "day_of_week": "Saturday", "open_time": "10:00", "close_time": "23:00" },
+        { "day_of_week": "Sunday", "open_time": "10:00", "close_time": "22:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 18, "percentage": 5, "display_label": "5% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 18, "user_id": 118, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 18, "user_id": 118, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 19,
+      "name": "Sandwich Spot",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "357 Sandwich Rd, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 18, "name": "Deli", "icon": "🥪" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "08:00", "close_time": "18:00" },
+        { "day_of_week": "Tuesday", "open_time": "08:00", "close_time": "18:00" },
+        { "day_of_week": "Wednesday", "open_time": "08:00", "close_time": "18:00" },
+        { "day_of_week": "Thursday", "open_time": "08:00", "close_time": "18:00" },
+        { "day_of_week": "Friday", "open_time": "08:00", "close_time": "18:00" },
+        { "day_of_week": "Saturday", "open_time": "08:00", "close_time": "18:00" },
+        { "day_of_week": "Sunday", "open_time": "08:00", "close_time": "18:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 19, "percentage": 0, "display_label": "No Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 19, "user_id": 119, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 19, "user_id": 119, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 20,
+      "name": "Coffee Corner",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "258 Coffee Rd, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 19, "name": "Cafe", "icon": "☕" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "07:00", "close_time": "19:00" },
+        { "day_of_week": "Tuesday", "open_time": "07:00", "close_time": "19:00" },
+        { "day_of_week": "Wednesday", "open_time": "07:00", "close_time": "19:00" },
+        { "day_of_week": "Thursday", "open_time": "07:00", "close_time": "19:00" },
+        { "day_of_week": "Friday", "open_time": "07:00", "close_time": "19:00" },
+        { "day_of_week": "Saturday", "open_time": "08:00", "close_time": "17:00" },
+        { "day_of_week": "Sunday", "open_time": "08:00", "close_time": "17:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 20, "percentage": 10, "display_label": "10% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 20, "user_id": 120, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 20, "user_id": 120, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 21,
+      "name": "Bakery Bliss",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "159 Bakery St, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 20, "name": "Bakery", "icon": "🥐" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "07:00", "close_time": "17:00" },
+        { "day_of_week": "Tuesday", "open_time": "07:00", "close_time": "17:00" },
+        { "day_of_week": "Wednesday", "open_time": "07:00", "close_time": "17:00" },
+        { "day_of_week": "Thursday", "open_time": "07:00", "close_time": "17:00" },
+        { "day_of_week": "Friday", "open_time": "07:00", "close_time": "17:00" },
+        { "day_of_week": "Saturday", "open_time": "08:00", "close_time": "17:00" },
+        { "day_of_week": "Sunday", "open_time": "08:00", "close_time": "17:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 21, "percentage": 5, "display_label": "5% Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 21, "user_id": 121, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 21, "user_id": 121, "vote_type": "upvote" }
+      ]
+    },
+    {
+      "restaurant_id": 22,
+      "name": "Ice Cream Parlor",
+      "logo_url": "https://via.placeholder.com/100",
+      "address": "753 Cream St, Toronto, ON",
+      "city": "Toronto",
+      "status": "active",
+      "categories": [
+        { "category_id": 21, "name": "Dessert", "icon": "🍦" }
+      ],
+      "operating_hours": [
+        { "day_of_week": "Monday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Tuesday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Wednesday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Thursday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Friday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Saturday", "open_time": "12:00", "close_time": "22:00" },
+        { "day_of_week": "Sunday", "open_time": "12:00", "close_time": "22:00" }
+      ],
+      "payment_methods": [
+        { "payment_method_id": 1, "name": "Cash", "icon": "💵", "status": "acceptable" },
+        { "payment_method_id": 2, "name": "Debit", "icon": "💳", "status": "not acceptable" },
+        { "payment_method_id": 3, "name": "Visa", "icon": "💳", "status": "acceptable" },
+        { "payment_method_id": 4, "name": "MasterCard", "icon": "💳", "status": "not sure" },
+        { "payment_method_id": 5, "name": "Amex", "icon": "💳", "status": "acceptable" }
+      ],
+      "cash_discounts": [
+        { "discount_id": 22, "percentage": 0, "display_label": "No Discount" }
+      ],
+      "ratings": [
+  { "rating_id": 22, "user_id": 122, "rating": 4 }
+      ],
+      "cash_discount_votes": [
+        { "vote_id": 22, "user_id": 122, "vote_type": "upvote" }
+      ]
+    }
+  ]
+}
