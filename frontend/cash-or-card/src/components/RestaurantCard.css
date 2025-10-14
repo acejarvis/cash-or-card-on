@@ -19,7 +19,8 @@
 
 .restaurant-card:hover .restaurant-logo {
   transform: scale(1.05);
-  box-shadow: var(--shadow-md);
+  /* remove box-shadow to avoid glowing color around the logo */
+  box-shadow: none;
 }
 
 .restaurant-logo {
@@ -61,20 +62,7 @@
   transition: all 220ms cubic-bezier(.2,.9,.2,1);
 }
 
-/* rim glow behind card on hover */
-.restaurant-card::after {
-  content: '';
-  position: absolute;
-  inset: -6px;
-  border-radius: 18px;
-  background: radial-gradient(600px 200px at 10% 10%, rgba(139,92,246,0.12), transparent 20%),
-              radial-gradient(500px 180px at 90% 20%, rgba(3,102,214,0.10), transparent 18%);
-  filter: blur(18px);
-  opacity: 0;
-  transition: opacity 260ms ease;
-  z-index: -1;
-}
-.restaurant-card:hover::after { opacity: 1; }
+/* rim glow behind card on hover removed to disable colorful glow */
 
 .card-title {
   font-size: 1.05rem; /* a touch smaller for compactness */

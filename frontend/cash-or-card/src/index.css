@@ -104,6 +104,23 @@ h1, h2, h3 { margin: 0; font-weight: 600; }
 .button:active { transform: translateY(-1px); }
 .button:focus { outline: none; box-shadow: 0 0 0 4px rgba(3,102,214,0.18); }
 
+/* Small variant used for inline action buttons in lists */
+.button.small {
+  /* fixed size so inline action buttons look identical */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 36px;
+  padding: 0 12px; /* horizontal padding kept for accessibility */
+  border-radius: 8px;
+  font-size: 0.88rem;
+  box-shadow: 0 6px 14px rgba(3,102,214,0.10);
+  white-space: nowrap;
+}
+.button.small:hover { transform: translateY(-2px); box-shadow: 0 10px 22px rgba(3,102,214,0.12); }
+.button.small:focus { box-shadow: 0 0 0 3px rgba(3,102,214,0.12); }
+
 /* Accessibility: reduce motion for users who prefer it */
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }

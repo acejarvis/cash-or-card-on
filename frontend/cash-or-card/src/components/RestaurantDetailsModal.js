@@ -2,15 +2,26 @@ import React, { useEffect, useState } from 'react';
 import './RestaurantDetailsModal.css';
 import restaurantImg from '../files/restaurant.jpg';
 
-const RestaurantDetailsModal = ({ restaurant, onClose }) => {
+const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
   const [isClosing, setIsClosing] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  // Local-only editable copies so changes don't affect global display or persist
+  const [localPayments, setLocalPayments] = useState(restaurant.payment_methods || []);
+  const [localDiscounts, setLocalDiscounts] = useState(restaurant.cash_discounts || []);
+  const [newDiscountValue, setNewDiscountValue] = useState('');
+  const [submittedMessage, setSubmittedMessage] = useState('');
 
   useEffect(() => {
     // Trigger enter animation after mount
     const t = setTimeout(() => setIsMounted(true), 8);
     return () => clearTimeout(t);
   }, []);
+
+  // keep local copies in sync if restaurant prop changes
+  useEffect(() => {
+    setLocalPayments(restaurant.payment_methods || []);
+    setLocalDiscounts(restaurant.cash_discounts || []);
+  }, [restaurant]);
 
   // Helper: determine open/closed/closing soon based on operating_hours
   const getRestaurantStatus = (operatingHours) => {
@@ -66,7 +77,7 @@ const RestaurantDetailsModal = ({ restaurant, onClose }) => {
           {restaurant.operating_hours.map((h, idx) => (
             <div key={idx} className="operating-row">
               <span className="day">{getDayAbbr(h.day_of_week)}:</span>
-              <span className="time">{h.open_time} - {h.close_time}</span>
+              <span className="hours">{h.open_time} - {h.close_time}</span>
             </div>
           ))}
         </div>
@@ -74,13 +85,29 @@ const RestaurantDetailsModal = ({ restaurant, onClose }) => {
     : 'Hours not available';
 
   // Payment methods: show all with acceptability indicator
-  const allPayments = (restaurant.payment_methods || []).length > 0
+  // Render payment methods using local state; for logged-in normal users provide toggles to edit acceptability (local-only)
+  const togglePaymentAccept = (index) => {
+    // Do not change display; show a transient submitted message instead (reserved for future REST API)
+    setSubmittedMessage('Payment preference submitted');
+    setTimeout(() => setSubmittedMessage(''), 1800);
+  };
+
+  const allPayments = (localPayments || []).length > 0
     ? (
       <div className="payment-list">
-        {(restaurant.payment_methods || []).map((method, idx) => (
+        {(localPayments || []).map((method, idx) => (
           <div key={idx} className={`payment-item payment-${method.status.replace(/\s+/g, '-')}`}>
             <span className="payment-name">{method.name}</span>
-            <span className="payment-status">{method.status === 'acceptable' ? 'Accepted' : method.status === 'not acceptable' ? 'Not accepted' : 'Unknown'}</span>
+            <div className="payment-right">
+              <span className="payment-status">
+                {method.status === 'acceptable' ? 'Accepted' : method.status === 'not acceptable' ? 'Not accepted' : 'Unknown'}
+              </span>
+              {user && user.role !== 'admin' && (
+                <button className="button small" onClick={() => togglePaymentAccept(idx)}>
+                  {method.status === 'acceptable' ? 'Mark not accepted' : 'Mark accepted'}
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -117,8 +144,78 @@ const RestaurantDetailsModal = ({ restaurant, onClose }) => {
     }, 260);
   };
 
+  const voteDiscount = (index, delta) => {
+    // Do not change displayed votes locally; show submitted toast instead
+    setSubmittedMessage('Vote submitted');
+    setTimeout(() => setSubmittedMessage(''), 1800);
+  };
+
+  const addDiscount = () => {
+    const pct = parseFloat(newDiscountValue);
+    if (Number.isNaN(pct)) return;
+    // Do not modify displayed discounts; show submitted toast and clear input
+    setSubmittedMessage('Discount submitted');
+    setTimeout(() => setSubmittedMessage(''), 1800);
+    setNewDiscountValue('');
+  };
+
+  const renderDiscounts = (discounts) => {
+    if (!discounts || discounts.length === 0) return 'No discounts available';
+
+    // If admin-verified discount exists, show only that (per requirements) and hide votes/other options
+    const verifiedDiscount = discounts.find(d => d.verified);
+    if (verifiedDiscount) {
+      return (
+        <div className="payment-list">
+          <div className={`payment-item payment-acceptable`}>
+            <span className="payment-name">{verifiedDiscount.display_label}</span>
+            <span className="payment-status"><span style={{ marginLeft: 8, fontWeight: 700 }}>(Verified)</span></span>
+          </div>
+        </div>
+      );
+    }
+
+    const mostVoted = discounts.reduce((top, current) => (current.votes > top.votes ? current : top), discounts[0]);
+
+    return (
+      <>
+        <div className="payment-list">
+          {discounts.map((discount, idx) => (
+            <div
+              key={idx}
+              className={`payment-item ${discount === mostVoted ? 'payment-acceptable' : ''}`}
+            >
+              <span className="payment-name">{discount.display_label}</span>
+              <div className="payment-right">
+                <span className="payment-status">Votes: {discount.votes}</span>
+                {user && user.role !== 'admin' && (
+                  <button className="button small" onClick={() => voteDiscount(idx, 1)}>Upvote</button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Add discount UI for logged-in normal users (local-only) */}
+        {user && user.role !== 'admin' && (
+          <div style={{ marginTop: 8 }}>
+            <div className="payment-item" style={{ alignItems: 'center' }}>
+              <span className="payment-name">
+                <input placeholder="Percent (e.g. 5)" value={newDiscountValue} onChange={(e) => setNewDiscountValue(e.target.value)} style={{ width: 120 }} />
+              </span>
+              <div className="payment-right">
+                <button className="button small" onClick={addDiscount}>Add Discount</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className={`modal-overlay ${isMounted && !isClosing ? 'overlay-visible' : ''} ${isClosing ? 'overlay-hidden' : ''}`} onClick={handleClose}>
+      {submittedMessage && <div className="submitted-toast">{submittedMessage}</div>}
       <div className={`modal-content ${isMounted && !isClosing ? 'modal-enter' : ''} ${isClosing ? 'modal-exit' : ''}`} onClick={(e) => e.stopPropagation()}>
         <button className="close-button" onClick={handleClose}>X</button>
 
@@ -156,8 +253,8 @@ const RestaurantDetailsModal = ({ restaurant, onClose }) => {
         </div>
 
         <div className="modal-section">
-          <div className="section-title">Cash Discount</div>
-          <div className="section-content centered">{cashDiscount}%</div>
+          <div className="section-title">Cash Discounts</div>
+          <div className="section-content">{renderDiscounts(restaurant.cash_discounts)}</div>
         </div>
 
       </div>

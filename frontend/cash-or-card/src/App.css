@@ -10,7 +10,7 @@ header {
   /* Use the same background gradient as the page but slightly stronger for contrast */
   background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
   color: var(--text);
-  padding: 18px 0;
+  padding: 8px 0; /* more compact */
   box-shadow: var(--shadow-md);
 }
 
@@ -18,12 +18,11 @@ header .header-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 6px; /* reduced gap for compact header */
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Updated: center the title, keep time pinned to the right */
 .header-top {
   display: flex;
   justify-content: center;
@@ -31,7 +30,6 @@ header .header-content {
   width: 100%;
   position: relative;
 }
-
 .header-top h1 {
   margin: 0;
   font-weight: 700;
@@ -40,22 +38,13 @@ header .header-content {
   color: var(--text);
 }
 
-.header-top .current-time {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.98rem;
-  color: rgba(7,19,40,0.8);
-  background: rgba(255,255,255,0.65);
-  padding: 6px 10px;
-  border-radius: 10px;
-}
+.site-logo { height: 65px; display: block; }
 
 .header-bottom {
   width: 100%;
   display: flex;
   justify-content: center;
+  align-items: center; /* vertically center items */
 }
 
 header input {
@@ -67,14 +56,14 @@ header input {
 .header-bottom input {
   width: 56%;
   max-width: 720px;
-  padding: 14px 20px;
+  padding: 8px 14px; /* tighter */
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--surface);
   box-shadow: var(--shadow-md);
-  font-size: 1rem;
+  font-size: 0.98rem;
   outline: none;
-  transition: all 220ms cubic-bezier(.2,.9,.2,1);
+  transition: all 180ms cubic-bezier(.2,.9,.2,1);
 }
 
 .header-bottom input:focus {
@@ -83,11 +72,7 @@ header input {
   box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.3);
 }
 
-.current-time {
-  font-size: 1.2rem;
-  font-weight: bold;
-  white-space: nowrap;
-}
+/* header time removed */
 
 .restaurant-list {
   display: flex;
@@ -320,7 +305,7 @@ button:focus, .chip:focus, input:focus {
   left: 0;
   right: 0;
   top: 0;
-  height: 420px;
+  height: 180px; /* reduced so header area is more compact */
   background: radial-gradient(600px 220px at 10% 10%, rgba(139,92,246,0.06), transparent 20%),
               radial-gradient(500px 200px at 90% 20%, rgba(3,102,214,0.05), transparent 18%);
   pointer-events: none;
@@ -332,7 +317,7 @@ button:focus, .chip:focus, input:focus {
 /* Glass header (non-sticky to allow full page scroll) */
 header {
   position: relative; /* not sticky so header scrolls with page */
-  margin: 8px 0 18px 0;
+  margin: 6px 0 12px 0;
   backdrop-filter: blur(6px) saturate(115%);
   background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.75));
   border: 1px solid rgba(27,31,35,0.06);

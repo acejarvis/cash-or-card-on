@@ -1,0 +1,13 @@
+{
+  "users": [
+    {
+      "user_id": "u_admin_001",
+      "username": "admin",
+      "name": "Site Administrator",
+      "email": "admin@example.com",
+      "role": "admin",
+      "password": "adminpass",
+      "created_at": "2025-10-12T12:00:00Z"
+    }
+  ]
+}

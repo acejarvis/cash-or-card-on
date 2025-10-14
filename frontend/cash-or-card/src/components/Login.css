@@ -15,9 +15,12 @@
   box-shadow: var(--shadow-md);
   position: relative;
 }
+.login-form { display: flex; flex-direction: column; gap: 12px; }
 .login-modal h2 { margin-top: 0; }
 .login-modal label { display: block; margin-bottom: 10px; color: var(--muted); }
-.login-modal input { width: 100%; padding: 8px; margin-top: 6px; border-radius: 8px; border: 1px solid rgba(47,43,41,0.06); }
+.login-modal input { box-sizing: border-box; width: 100%; max-width: 100%; padding: 10px 12px; margin-top: 6px; border-radius: 10px; border: 1px solid rgba(47,43,41,0.12); background: #ffffff; color: #0b1220; font-weight: 600; }
+.login-modal input::placeholder { color: rgba(11,18,32,0.45); font-weight: 500; }
+.login-modal input:focus { outline: none; border-color: rgba(3,102,214,0.9); box-shadow: 0 6px 22px rgba(3,102,214,0.12); }
 .login-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
 .login-error { color: #9b1c1c; margin-top: 6px; }
 .close-button { position: absolute; right: 10px; top: 10px; border: none; background: rgba(0,0,0,0.04); padding: 6px 8px; border-radius: 8px; }

@@ -48,8 +48,18 @@ const renderStars = (restaurant) => {
   );
 };
 
+const getTopDiscount = (discounts) => {
+  if (!discounts || discounts.length === 0) return null;
+
+  const verifiedDiscount = discounts.find(discount => discount.verified);
+  if (verifiedDiscount) return verifiedDiscount;
+
+  return discounts.reduce((top, current) => (current.votes > top.votes ? current : top), discounts[0]);
+};
+
 const RestaurantCard = ({ restaurant, onClick, index = 0, isFiltering = false }) => {
   const status = getRestaurantStatus(restaurant.operating_hours);
+  const topDiscount = getTopDiscount(restaurant.cash_discounts);
 
   // compute stagger delay
   const delay = isFiltering ? Math.min(12, index) * 35 : 0; // up to ~420ms
@@ -88,7 +98,11 @@ const RestaurantCard = ({ restaurant, onClick, index = 0, isFiltering = false })
         </div>
 
         <div className="card-section discount-section">
-          <p>{restaurant.cash_discounts?.[0]?.percentage ? `${restaurant.cash_discounts[0].percentage}% Cash Discount` : 'No cash discount'}</p>
+          {topDiscount ? (
+            <p>{`${topDiscount.percentage}% Cash Discount ${topDiscount.verified ? '(Verified)' : ''}`}</p>
+          ) : (
+            <p>No cash discount</p>
+          )}
         </div>
       </div>
     </div>

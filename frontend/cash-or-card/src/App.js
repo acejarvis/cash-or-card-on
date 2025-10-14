@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
+import siteLogo from './files/logo.svg';
 import RestaurantCard from './components/RestaurantCard';
 import RestaurantDetailsModal from './components/RestaurantDetailsModal';
+import AdminPanelModal from './components/AdminPanelModal';
 import Login from './components/Login';
 import Account from './components/Account';
 
@@ -10,7 +12,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [currentTime, setCurrentTime] = useState(new Date());
+  
   const [filters, setFilters] = useState({
     city: [],
     cuisine: [],
@@ -26,6 +28,7 @@ const App = () => {
   const [user, setUser] = useState(null);
   const [view, setView] = useState('list'); // kept for backwards compatibility
   const [showAccount, setShowAccount] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const filterTimer = useRef(null);
   const restaurantsPerPage = 8;
@@ -38,14 +41,7 @@ const App = () => {
     } catch (e) {}
   }, []);
 
-  useEffect(() => {
-    // Update time every minute
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-
-    return () => clearInterval(timer);
-  }, []);
+  
 
   useEffect(() => {
     fetch('/mock_restaurants.json')
@@ -141,7 +137,23 @@ const App = () => {
 
   // Authentication helpers (client-side mock against public/mock_users.json)
   const handleLogin = async (identifier, password) => {
-    // fetch mock users
+    // First try admin users from mock_admin.json
+    try {
+      const adminResp = await fetch('/mock_admin.json');
+      const adminData = await adminResp.json();
+      const adminUsers = adminData.users || [];
+      const adminFound = adminUsers.find(u => (u.username === identifier || u.email === identifier) && u.password === password);
+      if (adminFound) {
+        setUser(adminFound);
+        localStorage.setItem('mock_user', JSON.stringify(adminFound));
+        setShowLogin(false);
+        return true;
+      }
+    } catch (e) {
+      // ignore admin fetch error and fall back to regular users
+    }
+
+    // Fall back to regular users
     try {
       const resp = await fetch('/mock_users.json');
       const data = await resp.json();
@@ -151,12 +163,12 @@ const App = () => {
         setUser(found);
         localStorage.setItem('mock_user', JSON.stringify(found));
         setShowLogin(false);
-        // stay on the restaurant list view after login; user can click "My Account" when ready
         return true;
       }
     } catch (e) {
       console.error('Login error', e);
     }
+
     return false;
   };
 
@@ -171,14 +183,7 @@ const App = () => {
       <header>
         <div className="header-content">
           <div className="header-top">
-            <h1>Cash or Card</h1>
-            <div className="current-time">
-              {currentTime.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-              })}
-            </div>
+            <img src={siteLogo} alt="Cash or Card" className="site-logo" />
           </div>
 
           <div className="header-bottom">
@@ -188,10 +193,13 @@ const App = () => {
               value={searchTerm}
               onChange={(e) => handleSearchChange(e.target.value)}
             />
-            <div style={{ position: 'absolute', right: 32, top: 18 }}>
+            <div style={{ position: 'absolute', right: 32, top: 10 }}>
               {user ? (
                 <>
                   <button className="chip" onClick={() => setShowAccount(true)}>My Account</button>
+                  {user.role === 'admin' && (
+                    <button className="chip" onClick={() => setShowAdminPanel(true)}>Admin Panel</button>
+                  )}
                   <button className="chip" onClick={handleLogout}>Log out</button>
                 </>
               ) : (
@@ -293,6 +301,14 @@ const App = () => {
         <RestaurantDetailsModal
           restaurant={selectedRestaurant}
           onClose={() => setSelectedRestaurant(null)}
+          user={user}
+        />
+      )}
+
+      {showAdminPanel && (
+        <AdminPanelModal
+          restaurants={restaurants}
+          onClose={() => setShowAdminPanel(false)}
         />
       )}
 
