@@ -62,13 +62,25 @@ class PaymentMethodDAO {
       }
 
       // Update confidence score
+      // Recalculate upvotes and downvotes from votes table
+      const countVotesQuery = `
+        SELECT
+          COUNT(*) FILTER (WHERE vote_type = 'upvote') AS upvotes,
+          COUNT(*) FILTER (WHERE vote_type = 'downvote') AS downvotes
+        FROM payment_method_votes
+        WHERE payment_method_id = $1
+      `;
+      const voteCountsResult = await client.query(countVotesQuery, [paymentMethodId]);
+      const { upvotes, downvotes } = voteCountsResult.rows[0];
+
+      // Update confidence score using fresh counts
       const updateScoreQuery = `
         UPDATE payment_methods
-        SET confidence_score = calculate_confidence_score(upvotes, downvotes)
+        SET confidence_score = calculate_confidence_score($2::integer, $3::integer)
         WHERE id = $1
         RETURNING *
       `;
-      const result = await client.query(updateScoreQuery, [paymentMethodId]);
+      const result = await client.query(updateScoreQuery, [paymentMethodId, upvotes, downvotes]);
 
       await client.query('COMMIT');
       return result.rows[0];
