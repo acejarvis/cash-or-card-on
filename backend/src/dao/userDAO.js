@@ -41,16 +41,24 @@ class UserDAO {
 
   // Update user profile
   async update(id, updates) {
+    // Whitelist of fields allowed to be updated
+    const allowedFields = ['username', 'email', 'password_hash'];
     const fields = [];
     const values = [];
     let paramCount = 1;
 
     Object.entries(updates).forEach(([key, value]) => {
-      fields.push(`${key} = $${paramCount}`);
-      values.push(value);
-      paramCount++;
+      if (allowedFields.includes(key)) {
+        fields.push(`${key} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
+      }
     });
 
+    if (fields.length === 0) {
+      // Nothing to update
+      return null;
+    }
     values.push(id);
     const query = `
       UPDATE users 
