@@ -161,9 +161,29 @@
 
 /* Operating hours specific styles */
 .operating-hours {
+  display: block;
+}
+
+/* Each operating row is a two-column layout: fixed day column + hours column */
+.operating-row {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
+  justify-content: center; /* center the two columns as a group */
+  gap: 12px;
+}
+
+.operating-row .day {
+  flex: 0 0 72px; /* fixed width for day labels */
+  text-align: center; /* center the day text */
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.operating-row .hours {
+  flex: 0 0 120px; /* cap width so hours are centered near day */
+  text-align: center; /* center the hours text */
+  color: var(--text);
 }
 
 /* compact variant for section content to reduce spacing */
@@ -172,12 +192,12 @@
 }
 
 .section-content.compact .operating-row .day {
-  width: 54px;
+  flex: 0 0 60px;
   font-size: 0.88rem;
 }
 
 .section-content.compact .operating-row .hours {
-  width: 150px;
+  flex: 0 0 110px;
   font-size: 0.88rem;
 }
 
@@ -243,8 +263,12 @@
     height: 100px;
   }
   .operating-row {
-    width: 190px;
+    width: 100%;
+    gap: 8px;
+    justify-content: center;
   }
+  .operating-row .day { flex: 0 0 56px; }
+  .operating-row .hours { flex: 0 0 100px; }
   .payment-item {
     width: 160px;
   }
