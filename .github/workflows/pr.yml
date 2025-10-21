@@ -1,0 +1,28 @@
+name: PR Pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  cloc:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install cloc
+        run: sudo apt-get update && sudo apt-get install -y cloc
+      
+      - name: Count lines of code
+        run: |
+          cloc . --md > cloc_output.md
+          cloc .
+      
+      - name: Display lines of code in summary
+        run: |
+          echo "## Lines of Code Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat cloc_output.md >> $GITHUB_STEP_SUMMARY
