@@ -129,6 +129,23 @@ header input {
   padding-bottom: 60px; /* Add white space at the bottom */
 }
 
+/* Top notification */
+.top-notification {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: 0 8px 26px rgba(2,6,23,0.12);
+  color: white;
+  font-weight: 700;
+}
+.top-notification.info { background: linear-gradient(90deg,#6b7280,#111827); }
+.top-notification.success { background: linear-gradient(90deg,#10b981,#059669); }
+.top-notification.error { background: linear-gradient(90deg,#ef4444,#b91c1c); }
+
 /* Add the following styles to center the filter tab */
 .filters {
   display: flex;

@@ -10,9 +10,16 @@ const Login = ({ onClose, onLogin, showSignUp }) => {
     e.preventDefault();
     setError('');
     try {
-      const ok = await onLogin(identifier.trim(), password);
-      if (!ok) {
-        setError('Invalid credentials.');
+      // Simple email format check - backend requires email
+      if (!identifier || !identifier.includes('@')) {
+        setError('Please enter your email address.');
+        return;
+      }
+
+      const result = await onLogin(identifier.trim(), password);
+      if (!result || (result.ok === false)) {
+        const msg = result && result.message ? result.message : 'Invalid email or password.';
+        setError(msg);
       }
     } catch (err) {
       setError('Login failed.');

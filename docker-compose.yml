@@ -80,6 +80,21 @@ services:
       postgres:
         condition: service_healthy
 
+  # Frontend (React) served by nginx
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cash-or-card-frontend
+    restart: unless-stopped
+    ports:
+      # nginx in the container serves on port 80, map host 3000 to container 80
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - cash-or-card-network
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
     driver: local
