@@ -43,7 +43,7 @@ function generateRefreshToken(user) {
     type: 'refresh',
   };
 
-  return jwt.sign(payload, config.JWT.SECRET, {
+  return jwt.sign(payload, config.JWT.REFRESH_SECRET, {
     expiresIn: config.JWT.REFRESH_EXPIRES_IN,
   });
 }
