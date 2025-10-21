@@ -249,10 +249,10 @@ To populate the database with test data:
 docker exec -i cash-or-card-postgres psql -U postgres -d cash_or_card < backend/database/seeds/001_seed_test_data.sql
 ```
 
-Test users (password: `password123`):
-- admin@test.com (admin role)
-- user1@test.com (registered user)
-- user2@test.com (registered user)
+Test users (with their passwords and roles as seeded):
+- admin@cash-or-card.com (admin role, password: `admin123`)
+- user@cash-or-card.com (registered user, password: `user123`)
+- contributor@cash-or-card.com (registered user, password: `contributor123`)
 
 ### Database Management
 
