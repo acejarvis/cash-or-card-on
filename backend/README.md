@@ -603,7 +603,7 @@ Content-Type: application/json
 }
 ```
 
-**Payment Types:** `cash`, `debit`, `visa`, `mastercard`, `amex`, `discover`, `jcb`, `unionpay`, `wechat_pay`, `alipay`, `paypal`, `apple_pay`, `google_pay`
+**Payment Types:** `cash`, `debit`, `visa`, `mastercard`, `amex`, `discover`, `other`
 
 #### Vote on Payment Method (Authenticated)
 ```
