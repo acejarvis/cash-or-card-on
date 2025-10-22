@@ -1,8 +1,7 @@
 import React from 'react';
 import './RestaurantCard.css';
 import restaurantImg from '../files/restaurant.jpg';
-
-const capitalize = (s) => (typeof s === 'string' && s.length ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+import { titleCase, formatPostalCode } from '../utils/format';
 
 const getRestaurantStatus = (operatingHours) => {
   // operatingHours can be an array (old mock) or an object (API) keyed by weekday
@@ -106,7 +105,7 @@ const RestaurantCard = ({ restaurant, onClick, index = 0, isFiltering = false })
           alt={`${restaurant.name || 'Restaurant'} logo`}
           className="restaurant-logo"
         />
-        <h2 className="card-title">{restaurant.name || 'Unknown Restaurant'}</h2>
+  <h2 className="card-title">{titleCase(restaurant.name) || 'Unknown Restaurant'}</h2>
         <div className={`status-badge ${status}`}>
           {status === 'open' && 'Open'}
           {status === 'closed' && 'Closed'}
@@ -121,17 +120,19 @@ const RestaurantCard = ({ restaurant, onClick, index = 0, isFiltering = false })
             const city = restaurant.city || '';
             // support different possible field names for postal code
             const postal = restaurant.postal_code || restaurant.postalCode || '';
-            const cityPostal = [city, postal].filter(Boolean).join(' ');
-            const parts = [];
-            if (addr) parts.push(addr);
-            if (cityPostal) parts.push(cityPostal);
-            const line = parts.length ? parts.join(', ') : null;
-            return <p>{line || 'Address not available'}</p>;
+            const cityPostal = [titleCase(city), postal ? formatPostalCode(postal) : ''].filter(Boolean).join(' ');
+            if (!addr && !cityPostal) return <p>Address not available</p>;
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+                {addr ? <p className="address">{titleCase(addr)}</p> : null}
+                {cityPostal ? <p className="address city-postal">{cityPostal}</p> : null}
+              </div>
+            );
           })()}
         </div>
 
         <div className="card-section cuisine-section">
-          <p>{(restaurant.cuisine_tags && restaurant.cuisine_tags.length ? restaurant.cuisine_tags.join(', ') : (restaurant.category ? restaurant.category : 'Cuisine not specified'))}</p>
+          <p>{(restaurant.cuisine_tags && restaurant.cuisine_tags.length ? restaurant.cuisine_tags.map(titleCase).join(', ') : (restaurant.category ? titleCase(restaurant.category) : 'Cuisine not specified'))}</p>
         </div>
 
         <div className="card-section rating-section">
@@ -139,7 +140,7 @@ const RestaurantCard = ({ restaurant, onClick, index = 0, isFiltering = false })
         </div>
 
         <div className="card-section payments-section">
-          <p>{(restaurant.payment_methods || []).filter(m => (m.is_accepted === undefined ? true : m.is_accepted)).map((method) => capitalize(method.type || method.name)).join(', ') || 'No acceptable payment methods'}</p>
+          <p>{(restaurant.payment_methods || []).filter(m => (m.is_accepted === undefined ? true : m.is_accepted)).map((method) => titleCase(method.type || method.name)).join(', ') || 'No acceptable payment methods'}</p>
         </div>
 
         <div className="card-section discount-section">
