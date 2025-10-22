@@ -24,10 +24,10 @@
 
 .modal-content {
   background: var(--surface);
-  padding: 24px;
-  border-radius: 16px;
+  padding: 14px; /* reduced */
+  border-radius: 12px;
   width: 94%;
-  max-width: 640px;
+  max-width: 600px;
   text-align: left;
   position: relative;
   box-shadow: var(--shadow-lg);
@@ -87,8 +87,8 @@
 }
 
 .modal-logo {
-  width: 110px; /* reduced from 160 to compact */
-  height: 110px; /* reduced */
+  width: 86px; /* smaller */
+  height: 86px; /* smaller */
   object-fit: cover;
   border-radius: 12px;
   float: none;
@@ -97,7 +97,7 @@
 
 .header-section h2 {
   margin: 0;
-  font-size: 1.15rem; /* slightly smaller than before for compactness */
+  font-size: 1.02rem; /* slightly smaller */
   font-weight: 800;
 }
 
@@ -109,30 +109,36 @@
 /* Make each modal section boundary more visible */
 .modal-section {
   background: linear-gradient(180deg, #ffffff, #fbfdff);
-  padding: 8px; /* compacted */
-  border-radius: 10px;
-  margin-top: 10px;
-  border: 1px solid rgba(47,43,41,0.07); /* slightly stronger */
-  box-shadow: 0 6px 14px rgba(47,43,41,0.02); /* subtle lift */
+  padding: 6px; /* tighter */
+  border-radius: 8px;
+  margin-top: 8px;
+  border: 1px solid rgba(47,43,41,0.06);
+  box-shadow: 0 4px 10px rgba(47,43,41,0.02);
 }
 
 .section-title {
   font-weight: 700;
   color: var(--text);
   margin-bottom: 6px;
-  font-size: 0.98rem; /* slightly smaller */
+  font-size: 0.92rem; /* slightly smaller */
 }
 
 .section-content {
   color: var(--muted);
-  font-size: 0.93rem; /* compact */
-  line-height: 1.28;
+  font-size: 0.9rem; /* compact */
+  line-height: 1.22;
 }
 
 .address {
   color: #374151;
   margin-top: 4px; /* reduced */
   font-size: 0.92rem; /* smaller */
+}
+
+.address.city-postal {
+  color: var(--muted);
+  margin-top: 2px;
+  font-size: 0.9rem;
 }
 
 /* Status badge */
@@ -224,13 +230,46 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 8px; /* compacted */
-  border-radius: 8px;
-  border: 1px solid rgba(15,23,36,0.04);
+  padding: 4px 6px; /* tighter */
+  border-radius: 6px;
+  border: 1px solid rgba(15,23,36,0.035);
 }
 
 .payment-item .payment-name { font-weight: 600; color: var(--text); font-size: 0.92rem; }
 .payment-item .payment-status { font-size: 0.85rem; }
+
+/* vote counts are shown inline next to vote buttons now */
+
+.payment-votes-inline {
+  font-size: 0.88rem;
+  color: var(--muted);
+  min-width: 20px;
+  text-align: center;
+}
+
+.button.tiny {
+  padding: 3px 6px;
+  font-size: 0.82rem;
+  border-radius: 6px;
+  min-width: 28px;
+  height: 26px;
+}
+
+/* Compact button variant for 'Mark accepted' and similar actions */
+.button.compact {
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  border-radius: 8px;
+  height: 30px;
+}
+
+/* Colored vote buttons */
+.button.vote-up {
+  background-color: #0b6623; /* stronger green */
+  color: #ffffff; /* white text for contrast */
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 2px 6px rgba(11,102,35,0.18);
+}
 
 /* Right-side container for status + action to keep alignment across rows */
 .payment-right {
@@ -291,4 +330,18 @@
   font-weight: 700;
   z-index: 1400; /* above overlay */
   box-shadow: 0 10px 30px rgba(3,102,214,0.14);
+}
+
+/* Inputs inside modal */
+.discount-submit .input {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  background: var(--surface);
+}
+
+.discount-submit .button {
+  border-radius: 10px;
+  padding: 8px 12px;
 }

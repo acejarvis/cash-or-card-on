@@ -1,20 +1,20 @@
 /* Styles for individual restaurant cards */
 .restaurant-card {
-  transition: all 220ms cubic-bezier(.2,.9,.2,1);
+  transition: all 180ms cubic-bezier(.2,.9,.2,1);
   text-align: left;
   position: relative;
-  padding: 20px;
-  border-radius: 16px;
+  padding: 12px; /* reduced padding */
+  border-radius: 12px;
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow-md);
-  overflow: visible; /* allow glow */
+  box-shadow: var(--shadow-sm);
+  overflow: visible;
 }
 
 /* Hover interaction: subtle lift + shadow and logo scale */
 .restaurant-card:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
 }
 
 .restaurant-card:hover .restaurant-logo {
@@ -24,7 +24,7 @@
 }
 
 .restaurant-logo {
-  transition: transform 220ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms;
+  transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 180ms;
 }
 
 /* Make card sections more delineated */
@@ -52,8 +52,8 @@
 }
 
 .restaurant-logo {
-  width: 100px;
-  height: 100px;
+  width: 72px; /* smaller */
+  height: 72px;
   object-fit: cover;
   border-radius: 12px;
   float: none;
@@ -65,7 +65,7 @@
 /* rim glow behind card on hover removed to disable colorful glow */
 
 .card-title {
-  font-size: 1.05rem; /* a touch smaller for compactness */
+  font-size: 0.98rem; /* smaller */
   color: var(--text);
   margin: 0;
   text-align: center;
@@ -73,9 +73,9 @@
 }
 
 .restaurant-card h2 {
-  font-size: 1.15rem;
+  font-size: 1rem;
   color: var(--text);
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
 }
 
 .status-badge {
@@ -103,22 +103,24 @@
 
 .restaurant-meta {
   display: flex;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 6px;
   flex-wrap: wrap;
 }
 
 .restaurant-meta span {
-  background: rgba(99,102,241,0.12);
+  background: rgba(99,102,241,0.08);
   color: var(--accent);
-  padding: 6px 8px;
-  border-radius: 8px;
+  padding: 4px 6px;
+  border-radius: 6px;
   font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .restaurant-card p {
-  margin: 6px 0;
+  margin: 4px 0;
   color: var(--muted);
+  font-size: 0.92rem;
 }
 
 .card-section {
@@ -140,6 +142,13 @@
   color: var(--text);
   margin: 4px 0; /* reduced vertical spacing */
   font-size: 0.95rem; /* slightly smaller */
+}
+
+.address-section .city-postal {
+  color: var(--muted);
+  font-weight: 500;
+  margin-top: 2px;
+  font-size: 0.9rem;
 }
 
 .payment-section p,

@@ -6,6 +6,7 @@ import RestaurantDetailsModal from './components/RestaurantDetailsModal';
 import AdminPanelModal from './components/AdminPanelModal';
 import Login from './components/Login';
 import Account from './components/Account';
+import { titleCase, formatPostalCode } from './utils/format';
 
 const App = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -98,13 +99,11 @@ const App = () => {
         const list = data.restaurants || [];
         setRestaurants(list);
 
-        const uniqueCities = Array.from(new Set(list.map((restaurant) => restaurant.city)));
-        setCities(uniqueCities);
+  const uniqueCities = Array.from(new Set(list.map((restaurant) => titleCase(restaurant.city || '')).filter(Boolean)));
+  setCities(uniqueCities);
 
         // API uses `cuisine_tags` (array of strings). Fall back to single `category` if needed.
-        const uniqueCuisines = Array.from(
-          new Set(list.flatMap((restaurant) => (restaurant.cuisine_tags && restaurant.cuisine_tags.length ? restaurant.cuisine_tags : (restaurant.category ? [restaurant.category] : []))))
-        );
+        const uniqueCuisines = Array.from(new Set(list.flatMap((restaurant) => (restaurant.cuisine_tags && restaurant.cuisine_tags.length ? restaurant.cuisine_tags : (restaurant.category ? [restaurant.category] : []))).map((c) => titleCase(c || '')).filter(Boolean)));
         setCuisines(uniqueCuisines);
 
         // API payment_methods use `type` instead of `name`.
@@ -156,12 +155,12 @@ const App = () => {
   };
 
   const filteredRestaurants = restaurants.filter((restaurant) => {
-    const matchesCity = filters.city.length ? filters.city.includes(restaurant.city) : true;
+    const matchesCity = filters.city.length ? filters.city.includes(titleCase(restaurant.city)) : true;
 
     // Use cuisine_tags (array of strings) or fall back to category
     const restaurantCuisineTags = restaurant.cuisine_tags || (restaurant.category ? [restaurant.category] : []);
     const matchesCuisine = filters.cuisine.length
-      ? restaurantCuisineTags.some((tag) => filters.cuisine.includes(tag))
+      ? restaurantCuisineTags.some((tag) => filters.cuisine.includes(titleCase(tag)))
       : true;
 
     const activePaymentFilters = filters.paymentMethod.map(f => (f || '').toString().toLowerCase());
@@ -178,13 +177,33 @@ const App = () => {
     const matchesRating = filters.rating ? (restaurant.ratings?.[0]?.rating ?? 0) >= parseInt(filters.rating) : true;
     const matchesCashDiscount = filters.cashDiscount ? (restaurant.cash_discounts?.[0]?.percentage ?? 0) > 0 : true;
 
+    // Search term matching: check name, address, city, cuisine tags, and postal code (normalized)
+    const q = String(searchTerm || '').trim();
+    let matchesSearch = true;
+    if (q) {
+      const qLower = q.toLowerCase();
+      const nameMatch = String(restaurant.name || '').toLowerCase().includes(qLower);
+      const addrMatch = String(restaurant.address || '').toLowerCase().includes(qLower);
+      const cityMatch = String(restaurant.city || '').toLowerCase().includes(qLower);
+      const cuisineStr = (restaurant.cuisine_tags && restaurant.cuisine_tags.length ? restaurant.cuisine_tags.join(' ') : (restaurant.category ? restaurant.category : ''));
+      const cuisineMatch = String(cuisineStr || '').toLowerCase().includes(qLower);
+
+      // postal code: compare cleaned alnum uppercase strings to tolerate spacing/case
+      const qPostalClean = q.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const restPostal = String(restaurant.postal_code || restaurant.postalCode || '');
+      const restPostalClean = restPostal.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const postalMatch = qPostalClean.length > 0 && restPostalClean.includes(qPostalClean);
+
+      matchesSearch = nameMatch || addrMatch || cityMatch || cuisineMatch || postalMatch;
+    }
+
     return (
       matchesCity &&
       matchesCuisine &&
       matchesPaymentMethod &&
       matchesRating &&
       matchesCashDiscount &&
-      restaurant.name.toLowerCase().includes(searchTerm.toLowerCase())
+      matchesSearch
     );
   });
 
