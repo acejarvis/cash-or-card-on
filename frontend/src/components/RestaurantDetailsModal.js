@@ -5,10 +5,11 @@ import restaurantImg from '../files/restaurant.jpg';
 const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
   const [isClosing, setIsClosing] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
-  // Local-only editable copies so changes don't affect global display or persist
   const [localPayments, setLocalPayments] = useState(restaurant.payment_methods || []);
   const [localDiscounts, setLocalDiscounts] = useState(restaurant.cash_discounts || []);
   const [newDiscountValue, setNewDiscountValue] = useState('');
+  const [editingDiscountValue, setEditingDiscountValue] = useState('');
+  const [isEditingDiscount, setIsEditingDiscount] = useState(false);
   const [submittedMessage, setSubmittedMessage] = useState('');
 
   useEffect(() => {
@@ -22,6 +23,8 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
     setLocalPayments(restaurant.payment_methods || []);
     setLocalDiscounts(restaurant.cash_discounts || []);
   }, [restaurant]);
+
+  const API_BASE_URL = process.env.REACT_APP_API_BASE || 'http://localhost:3001/api';
 
   // Helper: determine open/closed/closing soon based on operating_hours
   const getRestaurantStatus = (operatingHours) => {
@@ -40,11 +43,11 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
     } else if (typeof operatingHours === 'object') {
       // new API format: { monday: { open: '11:00', close: '22:00' }, ... }
       todayHours = operatingHours[currentDay] || operatingHours[currentDayLong.toLowerCase()];
-    }
+    };
 
     if (!todayHours || !todayHours.open || !todayHours.close) return 'closed';
 
-    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  let currentMinutes = now.getHours() * 60 + now.getMinutes();
     const [openHour, openMinute] = todayHours.open.split(':').map(Number);
     const [closeHour, closeMinute] = todayHours.close.split(':').map(Number);
     const openTimeMinutes = openHour * 60 + openMinute;
@@ -63,9 +66,8 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
 
     const minutesUntilClosing = closeTimeMinutes - currentMinutes;
     if (minutesUntilClosing <= 60) return 'closing-soon';
-
     return 'open';
-  };
+  }
 
   const status = getRestaurantStatus(restaurant.operating_hours);
 
@@ -75,57 +77,150 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
     : (restaurant.category ? restaurant.category : 'Cuisine not specified');
 
   // Operating hours (all days)
+  // If you want to show day abbreviations, use this mapping:
   const dayAbbrMap = {
-    Monday: 'Mon',
-    Tuesday: 'Tue',
-    Wednesday: 'Wed',
-    Thursday: 'Thu',
-    Friday: 'Fri',
-    Saturday: 'Sat',
-    Sunday: 'Sun'
+    monday: 'Mon',
+    tuesday: 'Tue',
+    wednesday: 'Wed',
+    thursday: 'Thu',
+    friday: 'Fri',
+    saturday: 'Sat',
+    sunday: 'Sun',
   };
-  const getDayAbbr = (d) => dayAbbrMap[d] || (typeof d === 'string' ? d.slice(0,3) : d);
-  const capitalize = (s) => (typeof s === 'string' && s.length ? s.charAt(0).toUpperCase() + s.slice(1) : s);
-  // Build operating hours display for both array and object formats
+
+  // Operating hours as an ordered list of rows (one per day)
   const operatingHours = (() => {
-    const oh = restaurant.operating_hours;
-    if (!oh) return 'Hours not available';
-
-    let rows = [];
-    if (Array.isArray(oh)) {
-      rows = oh.map(h => ({
-        day: h.day_of_week,
-        open: h.open_time,
-        close: h.close_time
-      }));
-    } else if (typeof oh === 'object') {
-      // object keys may be lowercase weekdays
-      rows = Object.keys(oh).map((k) => ({ day: k, open: oh[k].open, close: oh[k].close }));
-      // sort by weekday order
-      const weekdayOrder = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
-      rows.sort((a,b) => weekdayOrder.indexOf(a.day.toLowerCase()) - weekdayOrder.indexOf(b.day.toLowerCase()));
-    }
-
-    if (!rows || rows.length === 0) return 'Hours not available';
-
-    return (
-      <div className="operating-hours">
-        {rows.map((h, idx) => (
-          <div key={idx} className="operating-row">
-            <span className="day">{(getDayAbbr(h.day) || '').charAt(0).toUpperCase() + (getDayAbbr(h.day) || '').slice(1)}:</span>
-            <span className="hours">{h.open} - {h.close}</span>
-          </div>
-        ))}
-      </div>
-    );
+    const hours = restaurant.operating_hours || {};
+    const days = Object.keys(dayAbbrMap);
+    const rows = days.map((d) => {
+      const key = dayAbbrMap[d];
+      const h = hours[d] || hours[key] || null;
+      if (!h || !h.open || !h.close) return null;
+      return { day: key, text: `${h.open} - ${h.close}` };
+    }).filter(Boolean);
+    return rows.length > 0 ? rows : null;
   })();
 
-  // Payment methods: show all with acceptability indicator
-  // Render payment methods using local state; for logged-in normal users provide toggles to edit acceptability (local-only)
-  const togglePaymentAccept = (index) => {
-    // Do not change display; show a transient submitted message instead (reserved for future REST API)
-    setSubmittedMessage('Payment preference submitted');
-    setTimeout(() => setSubmittedMessage(''), 1800);
+  // Submit a new cash discount
+  const submitNewDiscount = () => {
+    const pct = parseFloat(newDiscountValue);
+    if (Number.isNaN(pct)) return;
+
+    if (!user) {
+      setSubmittedMessage('Please log in to submit a discount');
+      setTimeout(() => setSubmittedMessage(''), 1800);
+      return;
+    }
+
+    (async () => {
+      try {
+        const token = localStorage.getItem('auth_token');
+        const resp = await fetch(`${API_BASE_URL}/cash-discounts`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ restaurantId: restaurant.id, discountPercentage: pct, description: '' }),
+        });
+
+        const body = await resp.json();
+        if (!resp.ok) {
+          setSubmittedMessage(body && body.message ? body.message : 'Failed to submit discount');
+          setTimeout(() => setSubmittedMessage(''), 2200);
+          return;
+        }
+
+        setSubmittedMessage('Discount submitted');
+
+        // Refresh discounts from server
+        try {
+          const cdResp = await fetch(`${API_BASE_URL}/cash-discounts/restaurant/${restaurant.id}`);
+          if (cdResp.ok) {
+            const cdBody = await cdResp.json();
+            setLocalDiscounts(cdBody.cashDiscounts || cdBody.cash_discounts || []);
+          }
+        } catch (e) {}
+
+        setNewDiscountValue('');
+        setTimeout(() => setSubmittedMessage(''), 1800);
+      } catch (err) {
+        setSubmittedMessage('Network error');
+        setTimeout(() => setSubmittedMessage(''), 1800);
+      }
+    })();
+  };
+
+  // Toggle payment method accept/not accept
+  const togglePaymentAccept = async (index) => {
+    const dp = displayPayments[index];
+    if (!dp) return;
+
+    if (!user) {
+      setSubmittedMessage('Please log in to vote');
+      setTimeout(() => setSubmittedMessage(''), 1800);
+      return;
+    }
+
+    // If there's no server record for this canonical method, submit it first
+    if (!dp.id) {
+      const isAccepted = !dp.is_accepted; // user intends to toggle to this state
+      try {
+        const token = localStorage.getItem('auth_token');
+        const resp = await fetch(`${API_BASE_URL}/payment-methods`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({ restaurantId: restaurant.id, paymentType: dp.key, isAccepted }),
+        });
+
+        const body = await resp.json();
+        if (!resp.ok) {
+          setSubmittedMessage(body && body.message ? body.message : 'Failed to submit payment method');
+          setTimeout(() => setSubmittedMessage(''), 2200);
+          return;
+        }
+
+        setSubmittedMessage(body.message || 'Payment method submitted');
+        // Don't refresh local payment list here; only post the user's intent and show a message.
+        setTimeout(() => setSubmittedMessage(''), 1800);
+        return;
+      } catch (err) {
+        setSubmittedMessage('Network error');
+        setTimeout(() => setSubmittedMessage(''), 1800);
+        return;
+      }
+    }
+
+    // Otherwise, vote on existing payment method
+    const voteType = dp.is_accepted ? 'downvote' : 'upvote';
+    try {
+      const token = localStorage.getItem('auth_token');
+      const resp = await fetch(`${API_BASE_URL}/payment-methods/${dp.id}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ voteType }),
+      });
+
+      const body = await resp.json();
+      if (!resp.ok) {
+        setSubmittedMessage(body && body.message ? body.message : 'Vote failed');
+        setTimeout(() => setSubmittedMessage(''), 2200);
+        return;
+      }
+
+      setSubmittedMessage(body.message || 'Vote recorded');
+      // Don't refresh local payment list here; only post the user's vote and show a message.
+      setTimeout(() => setSubmittedMessage(''), 1800);
+    } catch (err) {
+      setSubmittedMessage('Network error');
+      setTimeout(() => setSubmittedMessage(''), 1800);
+    }
   };
   // canonical payment keys and display labels - keep in sync with App.js mapping
   const canonicalPayments = [
@@ -135,6 +230,9 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
     { key: 'cash', label: 'Cash' },
     { key: 'debit', label: 'Debit' }
   ];
+
+  // small utility - same implementation as in RestaurantCard.js
+  const capitalize = (s) => (typeof s === 'string' && s.length ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
   // helper to normalize keys (small local implementation matching App.js behavior)
   const normalizePaymentKey = (s) => {
@@ -164,15 +262,15 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
     // ensure all canonical payments are present in display list
     const display = canonicalPayments.map((p) => {
       const found = map[p.key];
-      if (found) return { key: p.key, label: p.label, is_accepted: (found.is_accepted === undefined ? true : !!found.is_accepted) };
-      return { key: p.key, label: p.label, is_accepted: false };
+  if (found) return { key: p.key, id: found.id, label: p.label, is_accepted: (found.is_accepted === undefined ? true : !!found.is_accepted) };
+  return { key: p.key, id: null, label: p.label, is_accepted: false };
     });
 
     // include any non-canonical payments after canonical list
     Object.keys(map).forEach((k) => {
       if (!canonicalPayments.find(cp => cp.key === k)) {
         const m = map[k];
-        display.push({ key: k, label: m.type || m.name || k, is_accepted: (m.is_accepted === undefined ? true : !!m.is_accepted) });
+        display.push({ key: k, id: m.id || null, label: m.type || m.name || k, is_accepted: (m.is_accepted === undefined ? true : !!m.is_accepted) });
       }
     });
 
@@ -191,7 +289,7 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
               {method.is_accepted ? 'Accepted' : 'Not accepted'}
             </span>
             {user && user.role !== 'admin' && (
-              <button className="button small" onClick={() => togglePaymentAccept(idx)}>
+              <button className="button small" onClick={() => { togglePaymentAccept(idx); }}>
                 {method.is_accepted ? 'Mark not accepted' : 'Mark accepted'}
               </button>
             )}
@@ -232,75 +330,22 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
     }, 260);
   };
 
-  const voteDiscount = (index, delta) => {
-    // Do not change displayed votes locally; show submitted toast instead
-    setSubmittedMessage('Vote submitted');
-    setTimeout(() => setSubmittedMessage(''), 1800);
-  };
-
-  const addDiscount = () => {
-    const pct = parseFloat(newDiscountValue);
-    if (Number.isNaN(pct)) return;
-    // Do not modify displayed discounts; show submitted toast and clear input
-    setSubmittedMessage('Discount submitted');
-    setTimeout(() => setSubmittedMessage(''), 1800);
-    setNewDiscountValue('');
-  };
-
   const renderDiscounts = (discounts) => {
     if (!discounts || discounts.length === 0) return 'No discounts available';
 
-    // API uses is_verified, upvotes/downvotes, percentage, description
     const active = discounts.filter(d => (d.is_active === undefined ? true : d.is_active));
     if (active.length === 0) return 'No discounts available';
 
+    // prefer verified; otherwise pick highest percentage
     const verified = active.find(d => d.is_verified);
-    if (verified) {
-      return (
-        <div className="payment-list">
-          <div className={`payment-item payment-acceptable`}>
-            <span className="payment-name">{`${verified.percentage}% - ${verified.description || ''}`}</span>
-            <span className="payment-status"><span style={{ marginLeft: 8, fontWeight: 700 }}>(Verified)</span></span>
-          </div>
-        </div>
-      );
-    }
-
-    // rank by upvotes - downvotes
-    const scores = active.map(d => ({ d, score: (d.upvotes || 0) - (d.downvotes || 0) }));
-    scores.sort((a,b) => b.score - a.score || (b.d.percentage || 0) - (a.d.percentage || 0));
-    const top = scores[0].d;
+    const top = verified || active.reduce((a, b) => ((b.percentage || 0) > (a.percentage || 0) ? b : a), active[0]);
 
     return (
-      <>
-        <div className="payment-list">
-          {active.map((discount, idx) => (
-            <div key={idx} className={`payment-item ${discount === top ? 'payment-acceptable' : ''}`}>
-              <span className="payment-name">{`${discount.percentage}% - ${discount.description || ''}`}</span>
-              <div className="payment-right">
-                <span className="payment-status">Score: {(discount.upvotes || 0) - (discount.downvotes || 0)}</span>
-                {user && user.role !== 'admin' && (
-                  <button className="button small" onClick={() => voteDiscount(idx, 1)}>Upvote</button>
-                )}
-              </div>
-            </div>
-          ))}
+      <div className="payment-list">
+        <div className={`payment-item payment-acceptable`}>
+          <span className="payment-name">{`${top.percentage}%`}</span>
         </div>
-
-        {/* Add discount UI for logged-in normal users (local-only) */}
-        {user && user.role !== 'admin' && (
-          <div style={{ marginTop: 8 }}>
-            <div className="payment-item" style={{ alignItems: 'center' }}>
-              <span className="payment-name">
-                <input placeholder="Percent (e.g. 5)" value={newDiscountValue} onChange={(e) => setNewDiscountValue(e.target.value)} style={{ width: 120 }} />
-              </span>
-              <div className="payment-right">
-                <button className="button small" onClick={addDiscount}>Add Discount</button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
+      </div>
     );
   };
 
@@ -334,7 +379,20 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
 
         <div className="modal-section">
           <div className="section-title">Operating Hours</div>
-          <div className="section-content compact">{operatingHours}</div>
+          <div className="section-content compact">
+            {operatingHours ? (
+              <div className="operating-hours">
+                {operatingHours.map((r) => (
+                  <div key={r.day} className="operating-row">
+                    <div className="day">{r.day}:</div>
+                    <div className="hours">{r.text}</div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div>Hours not available</div>
+            )}
+          </div>
         </div>
 
         <div className="modal-section">
@@ -354,7 +412,28 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user }) => {
 
         <div className="modal-section">
           <div className="section-title">Cash Discounts</div>
-          <div className="section-content">{renderDiscounts(restaurant.cash_discounts)}</div>
+          <div className="section-content">
+            {renderDiscounts(restaurant.cash_discounts)}
+
+            {/* Submission form: allow users to submit a discount even if one is verified */}
+            <div className="discount-submit" style={{ marginTop: '12px' }}>
+              <label style={{ display: 'block', marginBottom: '6px' }}>Submit a cash discount (%)</label>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={newDiscountValue}
+                  onChange={(e) => setNewDiscountValue(e.target.value)}
+                  placeholder="e.g. 10"
+                  className="input small"
+                  aria-label="New discount percentage"
+                />
+                <button className="button" onClick={submitNewDiscount}>Submit</button>
+              </div>
+              
+            </div>
+          </div>
         </div>
 
       </div>

@@ -8,7 +8,7 @@ const Account = ({ user, onLogout, onBack }) => {
     <div className="account-page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2>{user.name}</h2>
+          <h2>{user.username || user.email}</h2>
           <div className="account-role">{user.role === 'admin' ? 'Administrator' : 'User'}</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
@@ -20,7 +20,6 @@ const Account = ({ user, onLogout, onBack }) => {
       <div className="account-section">
         <div className="field"><strong>Username:</strong> {user.username}</div>
         <div className="field"><strong>Email:</strong> {user.email}</div>
-        <div className="field"><strong>Name:</strong> {user.name}</div>
       </div>
     </div>
   );
