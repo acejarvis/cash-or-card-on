@@ -25,6 +25,7 @@ const App = () => {
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [isFiltering, setIsFiltering] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [loginMode, setLoginMode] = useState('signin'); // 'signin' or 'signup'
   const [user, setUser] = useState(null);
   const [view, setView] = useState('list'); // kept for backwards compatibility
   const [showAccount, setShowAccount] = useState(false);
@@ -237,6 +238,49 @@ const App = () => {
     }
   };
 
+  // Register handler for new users
+  const handleRegister = async (email, username, password) => {
+    if (!email || !email.includes('@')) {
+      return { ok: false, message: 'Please provide a valid email address.' };
+    }
+    if (!username || username.length < 2) {
+      return { ok: false, message: 'Please provide a username (2+ characters).' };
+    }
+    if (!password || password.length < 8) {
+      return { ok: false, message: 'Password must be at least 8 characters.' };
+    }
+
+    try {
+      const resp = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), username: username.trim(), password }),
+      });
+
+      const body = await resp.json();
+      if (!resp.ok) {
+        const msg = body && body.message ? body.message : 'Registration failed';
+        return { ok: false, message: msg };
+      }
+
+      const returnedUser = body.user;
+      const token = body.token;
+
+      if (!returnedUser || !token) return { ok: false, message: 'Invalid server response' };
+
+      // Store token and user
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('auth_user', JSON.stringify(returnedUser));
+      setUser(returnedUser);
+      setShowLogin(false);
+      showNotification(`Welcome, ${returnedUser.username || returnedUser.email}`, 'success');
+      return { ok: true };
+    } catch (e) {
+      console.error('Registration error', e);
+      return { ok: false, message: 'Network or server error' };
+    }
+  };
+
   const handleLogout = () => {
     setUser(null);
     // Clear stored auth
@@ -276,7 +320,7 @@ const App = () => {
                   <button className="chip" onClick={handleLogout}>Log out</button>
                 </>
               ) : (
-                <button className="chip" onClick={() => setShowLogin(true)}>Log In</button>
+                <button className="chip" onClick={() => { setLoginMode('signin'); setShowLogin(true); }}>Log In</button>
               )}
             </div>
           </div>
@@ -386,7 +430,12 @@ const App = () => {
       )}
 
       {showLogin && (
-        <Login onClose={() => setShowLogin(false)} onLogin={handleLogin} />
+        <Login
+          onClose={() => setShowLogin(false)}
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+          showSignUp={loginMode === 'signup'}
+        />
       )}
 
       {/* Account modal shown on top of restaurant view */}
