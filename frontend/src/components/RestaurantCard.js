@@ -90,65 +90,84 @@ const getTopDiscount = (discounts) => {
   }, active[0]);
 };
 
-const RestaurantCard = ({ restaurant, onClick, index = 0, isFiltering = false }) => {
+const RestaurantCard = ({ restaurant, onClick, onMouseEnter, onMouseLeave, index = 0, isFiltering = false }) => {
   const status = getRestaurantStatus(restaurant.operating_hours);
   const topDiscount = getTopDiscount(restaurant.cash_discounts);
 
   // compute stagger delay
   const delay = isFiltering ? Math.min(12, index) * 35 : 0; // up to ~420ms
 
+  // prepare left/right column strings so we can set title attributes for long text
+  const cuisineText = restaurant.category ? titleCase(restaurant.category) : 'Category N/A';
+  const paymentsText = (restaurant.payment_methods || []).filter(m => (m.is_accepted === undefined ? true : m.is_accepted)).map((method) => titleCase(method.type || method.name)).join(', ') || 'No acceptable payment methods';
+  const discountText = topDiscount ? `${topDiscount.percentage}% Cash Discount${topDiscount.verified ? ' (Verified)' : ''}` : 'No cash discount';
+  // rating numeric for tooltip
+  let ratingNumeric = 'N/A';
+  if (restaurant.ratings && restaurant.ratings.length > 0) {
+    const avg = restaurant.ratings.reduce((s, r) => s + (r.rating || 0), 0) / restaurant.ratings.length;
+    ratingNumeric = avg.toFixed(1);
+  }
+
   return (
-    <div className={`restaurant-card animate-in`} onClick={onClick} style={{ animationDelay: `${delay}ms` }}>
-      <div className="card-header centered-header">
-        <img
-          src={restaurantImg}
-          alt={`${restaurant.name || 'Restaurant'} logo`}
-          className="restaurant-logo"
-        />
-  <h2 className="card-title">{titleCase(restaurant.name) || 'Unknown Restaurant'}</h2>
-        <div className={`status-badge ${status}`}>
-          {status === 'open' && 'Open'}
-          {status === 'closed' && 'Closed'}
-          {status === 'closing-soon' && 'Closing Soon'}
-        </div>
-      </div>
+    <div
+      className={`restaurant-card animate-in`}
+      onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      <div className="card-split">
+        <div className="card-left">
+          <img
+            src={restaurantImg}
+            alt={`${restaurant.name || 'Restaurant'} logo`}
+            className="restaurant-logo"
+          />
+          <div className={`status-badge ${status}`}>
+            {status === 'open' && 'Open'}
+            {status === 'closed' && 'Closed'}
+            {status === 'closing-soon' && 'Closing Soon'}
+          </div>
 
-      <div className="card-body">
-        <div className="card-section address-section">
-          {(() => {
-            const addr = restaurant.address || '';
-            const city = restaurant.city || '';
-            // support different possible field names for postal code
-            const postal = restaurant.postal_code || restaurant.postalCode || '';
-            const cityPostal = [titleCase(city), postal ? formatPostalCode(postal) : ''].filter(Boolean).join(' ');
-            if (!addr && !cityPostal) return <p>Address not available</p>;
-            return (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-                {addr ? <p className="address">{titleCase(addr)}</p> : null}
-                {cityPostal ? <p className="address city-postal">{cityPostal}</p> : null}
-              </div>
-            );
-          })()}
-        </div>
-
-        <div className="card-section cuisine-section">
-          <p>{(restaurant.cuisine_tags && restaurant.cuisine_tags.length ? restaurant.cuisine_tags.map(titleCase).join(', ') : (restaurant.category ? titleCase(restaurant.category) : 'Cuisine not specified'))}</p>
+          <div className="address-compact" style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '6px', alignItems: 'center'}}>
+            {(() => {
+              const addr = restaurant.address || '';
+              const city = restaurant.city || '';
+              const postal = restaurant.postal_code || restaurant.postalCode || '';
+                // show only city in the card view — omit postal code per UI preference
+                const cityOnly = titleCase(city);
+                if (!cityOnly) return <p className="address">Location not available</p>;
+                return (
+                  <p className="address city-postal">{cityOnly}</p>
+                );
+            })()}
+          </div>
         </div>
 
-        <div className="card-section rating-section">
-          {renderStars(restaurant)}
-        </div>
+        <div className="card-right">
+          <h2 className="card-title">{titleCase(restaurant.name) || 'Unknown Restaurant'}</h2>
 
-        <div className="card-section payments-section">
-          <p>{(restaurant.payment_methods || []).filter(m => (m.is_accepted === undefined ? true : m.is_accepted)).map((method) => titleCase(method.type || method.name)).join(', ') || 'No acceptable payment methods'}</p>
-        </div>
+          {/* Cuisine type row */}
+          <div className="info-row">
+            <div className="info-col left">Cuisine</div>
+            <div className="info-col right" title={cuisineText}>{cuisineText}</div>
+          </div>
 
-        <div className="card-section discount-section">
-          {topDiscount ? (
-            <p>{`${topDiscount.percentage}% Cash Discount ${topDiscount.verified ? '(Verified)' : ''}`}</p>
-          ) : (
-            <p>No cash discount</p>
-          )}
+          {/* Rating row */}
+          <div className="info-row">
+            <div className="info-col left">Rating</div>
+            <div className="info-col right" title={`${ratingNumeric} stars`}>{renderStars(restaurant)}</div>
+          </div>
+
+          <div className="info-row">
+            <div className="info-col left">Payments</div>
+            <div className="info-col right" title={paymentsText}>{paymentsText}</div>
+          </div>
+
+          <div className="info-row">
+            <div className="info-col left">Cash Discount</div>
+            <div className="info-col right" title={discountText}>{discountText}</div>
+          </div>
         </div>
       </div>
     </div>
