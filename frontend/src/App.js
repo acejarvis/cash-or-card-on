@@ -4,6 +4,7 @@ import siteLogo from './files/logo.svg';
 import RestaurantCard from './components/RestaurantCard';
 import RestaurantDetailsModal from './components/RestaurantDetailsModal';
 import AdminPanelModal from './components/AdminPanelModal';
+import MapView from './components/MapView';
 import Login from './components/Login';
 import Account from './components/Account';
 import { titleCase, formatPostalCode } from './utils/format';
@@ -12,6 +13,7 @@ const App = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
+  const [hoveredRestaurantId, setHoveredRestaurantId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   
   const [filters, setFilters] = useState({
@@ -320,16 +322,7 @@ const App = () => {
         <div className="header-content">
           <div className="header-top">
             <img src={siteLogo} alt="Cash or Card" className="site-logo" />
-          </div>
-
-          <div className="header-bottom">
-            <input
-              type="text"
-              placeholder="Search restaurants..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
-            <div style={{ position: 'absolute', right: 32, top: 10 }}>
+            <div className="header-actions">
               {user ? (
                 <>
                   <button className="chip" onClick={() => setShowAccount(true)}>My Account</button>
@@ -342,6 +335,15 @@ const App = () => {
                 <button className="chip" onClick={() => { setLoginMode('signin'); setShowLogin(true); }}>Log In</button>
               )}
             </div>
+          </div>
+
+          <div className="header-bottom">
+            <input
+              type="text"
+              placeholder="Search restaurants..."
+              value={searchTerm}
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
           </div>
         </div>
       </header>
@@ -408,17 +410,28 @@ const App = () => {
             </div>
 
           </aside>
-          <main className={`restaurant-list ${isFiltering ? 'filtering' : ''}`}>
-            {currentRestaurants.map((restaurant, idx) => (
-              <RestaurantCard
-                key={restaurant.id}
-                restaurant={restaurant}
-                onClick={() => setSelectedRestaurant(restaurant)}
-                index={idx}
-                isFiltering={isFiltering}
+          <div style={{ flex: 1, display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+            <main className={`restaurant-list ${isFiltering ? 'filtering' : ''}`} style={{ flex: 1 }}>
+              {currentRestaurants.map((restaurant, idx) => (
+                <RestaurantCard
+                  key={restaurant.id}
+                  restaurant={restaurant}
+                  onClick={() => setSelectedRestaurant(restaurant)}
+                  onMouseEnter={() => setHoveredRestaurantId(restaurant.id)}
+                  onMouseLeave={() => setHoveredRestaurantId(null)}
+                  index={idx}
+                  isFiltering={isFiltering}
+                />
+              ))}
+            </main>
+
+            <aside className="map-panel">
+              <MapView 
+                restaurants={filteredRestaurants} 
+                hoveredRestaurantId={hoveredRestaurantId}
               />
-            ))}
-          </main>
+            </aside>
+          </div>
         </div>
         <div className="pagination">
           {Array.from({ length: totalPages }, (_, index) => (

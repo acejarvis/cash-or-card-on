@@ -1,15 +1,19 @@
 /* Styles for individual restaurant cards */
 .restaurant-card {
   transition: all 180ms cubic-bezier(.2,.9,.2,1);
-  text-align: left;
+  text-align: center;
   position: relative;
-  padding: 12px; /* reduced padding */
-  border-radius: 12px;
+  padding: 8px; /* more compact padding */
+  border-radius: 10px;
   background: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
   overflow: visible;
 }
+
+/* Ensure component-level width so global styles don't force small cards */
+/* Make cards wider for better readability */
+.restaurant-card { width: 620px; max-width: calc(100% - 2rem); margin: 0.25rem; padding: 6px; }
 
 /* Hover interaction: subtle lift + shadow and logo scale */
 .restaurant-card:hover {
@@ -27,13 +31,128 @@
   transition: transform 180ms cubic-bezier(.2,.9,.2,1), box-shadow 180ms;
 }
 
+/* Two-column compact card layout */
+.card-split {
+  display: flex;
+  gap: 8px; /* even tighter gap between image and content */
+  align-items: center;
+  justify-content: center;
+}
+
+.card-left {
+  width: 160px; /* slightly wider to fit larger image */
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* center contents horizontally */
+  text-align: center;
+  gap: 6px; /* small gap */
+  padding-right: 6px; /* less spacing */
+  border-right: 1px solid rgba(27,31,35,0.12); /* stronger divider */
+}
+
+.card-left .restaurant-logo {
+  width: 120px; /* larger logo per request */
+  height: 120px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.card-left .status-badge {
+  margin-top: 2px;
+  font-size: 0.7rem; /* smaller status badge text */
+  padding: 3px 8px; /* smaller padding */
+}
+
+.address-compact { font-size: 0.8rem; display: flex; justify-content: center; align-items: center; gap: 4px; text-align: center; } /* smaller text */
+.address-compact .address { margin: 0; font-weight: 600; color: var(--text); display: inline-block; }
+.address-compact .city-postal { margin: 0; color: var(--muted); font-weight: 500; display: inline-block; }
+
+.card-right {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px; /* tighter gap */
+  padding-left: 12px; /* less padding */
+  align-items: flex-start; /* left-align inner content so labels/values line up */
+  text-align: left;
+  min-width: 360px; /* adjust to match narrower card */
+}
+
+/* Add subtle boundaries between info sections on the right */
+.meta-row { padding: 6px 0; border-bottom: 1px dashed rgba(27,31,35,0.04); } /* tighter padding */
+.meta-row:last-of-type { border-bottom: none; }
+
+/* New structured two-column rows with separators (grid ensures perfect label/value alignment) */
+.info-row {
+  display: grid;
+  grid-template-columns: 120px 1fr; /* narrower label column */
+  column-gap: 10px; /* tighter gap */
+  align-items: center;
+  padding: 5px 0; /* less padding */
+  border-top: 1px solid rgba(27,31,35,0.06); /* more visible */
+  font-size: 0.85rem; /* smaller text */
+}
+.info-row:first-of-type { border-top: none; padding-top: 4px; }
+.info-col { display: block; }
+.info-col.left { color: var(--muted); font-weight: 700; text-align: left; font-size: 0.82rem; } /* smaller label text */
+.info-col.right { color: var(--text); font-weight: 600; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 0.85rem; } /* smaller value text */
+
+/* On small screens stack label above value for readability */
+@media (max-width: 520px) {
+  .info-row { display: flex; flex-direction: column; grid-template-columns: none; }
+  .info-col.left, .info-col.right { width: 100%; text-align: center; white-space: normal; }
+}
+
+/* single-right rows (where left column is empty) allow the right content to use more width */
+.info-row.single-right .info-col.right { justify-content: flex-start; text-align: left; width: 100%; }
+
+/* Make title stand out more */
+.card-right .card-title { 
+  font-size: 1.25rem; /* larger, more prominent */
+  color: var(--text); 
+  width: 100%; 
+  text-align: left; 
+  font-weight: 800; 
+  margin-bottom: 4px;
+  letter-spacing: -0.3px; /* tighter letter spacing for impact */
+}
+
+.info-row + .info-row { margin-top: 4px; } /* tighter spacing */
+
+.meta-row {
+  display: flex;
+  gap: 10px; /* tighter gap */
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.meta-item { font-size: 0.8rem; color: var(--muted); font-weight: 600; } /* smaller text */
+.meta-item.category { color: var(--text); font-weight: 700; font-size: 0.82rem; }
+.meta-item.rating { display: flex; align-items: center; gap: 6px; }
+
+.payments-row .meta-item.payments { color: var(--muted); font-weight: 600; font-size: 0.8rem; } /* smaller text */
+.discount-row .meta-item.discount { color: var(--accent); font-weight: 700; font-size: 0.82rem; } /* smaller text */
+
+@media (max-width: 720px) {
+  .card-split { flex-direction: row; }
+  .card-left { width: 80px; } /* smaller on mobile */
+}
+
+@media (max-width: 520px) {
+  .card-split { flex-direction: column; align-items: center; text-align: center; }
+  .card-left { width: auto; align-items: center; }
+  .card-right { width: 100%; }
+  .meta-row { justify-content: center; }
+}
+
 /* Make card sections more delineated */
 .card-section {
-  padding: 10px 0;
+  padding: 8px 0; /* less padding */
   border-top: 1px solid rgba(47,43,41,0.08); /* stronger */
   background: linear-gradient(180deg, rgba(255,255,255,0.995), rgba(248,249,250,0.995));
-  margin-top: 6px;
-  border-radius: 8px;
+  margin-top: 4px; /* tighter spacing */
+  border-radius: 6px; /* smaller radius */
 }
 
 .card-section:first-of-type {
