@@ -20,22 +20,227 @@ jobs:
       
       - name: Count lines of code
         run: |
-          cloc . --md > cloc_output.md
-          cloc .
+          cloc . --include-lang=JavaScript,CSS,HTML,SQL,Bourne\ Shell,Dockerfile,YAML --md > cloc_output.md
+          cloc . --include-lang=JavaScript,CSS,HTML,SQL,Bourne\ Shell,Dockerfile,YAML
       
       - name: Count lines by committer
         run: |
-          echo "## Lines by Committer" > lines_by_committer.md
+          echo "## 👥 Lines by Committer" > lines_by_committer.md
           echo "" >> lines_by_committer.md
           git log --format='%aN' | sort -u | while read author; do
+            echo "### 👤 $author" >> lines_by_committer.md
+            echo "" >> lines_by_committer.md
+            
+            # Overall statistics
             lines=$(git log --author="$author" --pretty=tformat: --numstat | awk '{ add += $1; subs += $2 } END { printf "%d additions, %d deletions", add, subs }')
-            echo "- **$author**: $lines" >> lines_by_committer.md
+            echo "**📊 Total**: $lines" >> lines_by_committer.md
+            echo "" >> lines_by_committer.md
+            
+            # Breakdown by file type
+            echo "**📁 Breakdown by file type**:" >> lines_by_committer.md
+            for ext in js css html sql sh Dockerfile yaml yml; do
+              case $ext in
+                js) pattern="\.js$" label="📜 JavaScript" ;;
+                css) pattern="\.css$" label="🎨 CSS" ;;
+                html) pattern="\.html$" label="🌐 HTML" ;;
+                sql) pattern="\.sql$" label="🗄️ SQL" ;;
+                sh) pattern="\.sh$" label="🐚 Shell" ;;
+                Dockerfile) pattern="Dockerfile" label="🐳 Dockerfile" ;;
+                yaml|yml) pattern="\.(yaml|yml)$" label="⚙️ YAML" ;;
+              esac
+              
+              type_lines=$(git log --author="$author" --pretty=tformat: --numstat | grep "$pattern" | awk '{ add += $1; subs += $2 } END { printf "%d additions, %d deletions", add, subs }')
+              if [ ! -z "$type_lines" ] && [ "$type_lines" != "0 additions, 0 deletions" ]; then
+                echo "- $label: $type_lines" >> lines_by_committer.md
+              fi
+            done
+            echo "" >> lines_by_committer.md
           done
       
       - name: Display lines of code in summary
         run: |
-          echo "## Lines of Code Statistics" >> $GITHUB_STEP_SUMMARY
+          echo "## 📊 Lines of Code Statistics" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           cat cloc_output.md >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           cat lines_by_committer.md >> $GITHUB_STEP_SUMMARY
+
+  docker-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            docker-compose \
+            curl \
+            jq
+          
+          # Verify installations
+          docker --version
+          docker-compose --version
+          curl --version
+          jq --version
+      
+      - name: Create .env file
+        run: |
+          cat > .env << EOF
+          NODE_ENV=production
+          POSTGRES_DB=cash_or_card
+          POSTGRES_USER=postgres
+          POSTGRES_PASSWORD=postgres
+          JWT_SECRET=test-secret-for-ci
+          JWT_EXPIRES_IN=7d
+          CORS_ORIGIN=http://localhost:3000
+          EOF
+      
+      - name: Build and start Docker containers
+        run: |
+          docker-compose up -d --build
+          echo "Waiting for services to be healthy..."
+          sleep 30
+      
+      - name: Check container status
+        run: |
+          docker-compose ps
+          docker-compose logs backend
+      
+      - name: Wait for backend to be ready
+        run: |
+          echo "Waiting for backend to be ready..."
+          max_attempts=30
+          attempt=0
+          until curl -f http://localhost:3001/health || [ $attempt -eq $max_attempts ]; do
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt of $max_attempts..."
+            sleep 2
+          done
+          
+          if [ $attempt -eq $max_attempts ]; then
+            echo "Backend failed to become ready"
+            docker-compose logs backend
+            exit 1
+          fi
+          echo "Backend is ready!"
+      
+      - name: Test API endpoints
+        run: |
+          echo "## 🧪 API Test Results" > api_test_results.md
+          echo "" >> api_test_results.md
+          
+          # Test 1: Health check
+          echo "### 1. 💓 Health Check" >> api_test_results.md
+          if curl -f http://localhost:3001/health; then
+            echo "✅ Health check passed" >> api_test_results.md
+          else
+            echo "❌ Health check failed" >> api_test_results.md
+            exit 1
+          fi
+          echo "" >> api_test_results.md
+          
+          # Test 2: Get all restaurants (public endpoint)
+          echo "### 2. 🍽️ Get All Restaurants" >> api_test_results.md
+          response=$(curl -s -w "\n%{http_code}" http://localhost:3001/api/restaurants)
+          status_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+          
+          if [ "$status_code" -eq 200 ]; then
+            echo "✅ GET /api/restaurants passed (Status: $status_code)" >> api_test_results.md
+            echo "\`\`\`json" >> api_test_results.md
+            echo "$body" | jq '.' >> api_test_results.md || echo "$body" >> api_test_results.md
+            echo "\`\`\`" >> api_test_results.md
+          else
+            echo "❌ GET /api/restaurants failed (Status: $status_code)" >> api_test_results.md
+            exit 1
+          fi
+          echo "" >> api_test_results.md
+          
+          # Test 3: Register a new user
+          echo "### 3. 📝 User Registration" >> api_test_results.md
+          response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:3001/api/auth/register \
+            -H "Content-Type: application/json" \
+            -d '{"username":"testuser","email":"test@example.com","password":"TestPass123!"}')
+          status_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+          
+          if [ "$status_code" -eq 201 ] || [ "$status_code" -eq 200 ]; then
+            echo "✅ POST /api/auth/register passed (Status: $status_code)" >> api_test_results.md
+            echo "\`\`\`json" >> api_test_results.md
+            echo "$body" | jq '.' >> api_test_results.md || echo "$body" >> api_test_results.md
+            echo "\`\`\`" >> api_test_results.md
+          else
+            echo "⚠️  POST /api/auth/register returned status $status_code (may be expected if user exists)" >> api_test_results.md
+          fi
+          echo "" >> api_test_results.md
+          
+          # Test 4: User login
+          echo "### 4. 🔐 User Login" >> api_test_results.md
+          response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:3001/api/auth/login \
+            -H "Content-Type: application/json" \
+            -d '{"email":"test@example.com","password":"TestPass123!"}')
+          status_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+          
+          if [ "$status_code" -eq 200 ]; then
+            echo "✅ POST /api/auth/login passed (Status: $status_code)" >> api_test_results.md
+            token=$(echo "$body" | jq -r '.token' 2>/dev/null || echo "")
+            echo "🎟️ Token received: ${token:0:20}..." >> api_test_results.md
+          else
+            echo "❌ POST /api/auth/login failed (Status: $status_code)" >> api_test_results.md
+            token=""
+          fi
+          echo "" >> api_test_results.md
+          
+          # Test 5: Create a new restaurant (authenticated)
+          echo "### 5. 🏪 Create New Restaurant" >> api_test_results.md
+          if [ ! -z "$token" ]; then
+            response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:3001/api/restaurants \
+              -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $token" \
+              -d '{
+                "name": "Test Restaurant CI",
+                "address": "123 CI Test Street",
+                "city": "TestCity",
+                "state": "TC",
+                "zipCode": "12345",
+                "phone": "555-0123",
+                "cuisine": "Test Cuisine",
+                "category": "Chinese",
+                "cashDiscount": 5.0,
+                "latitude": 40.7128,
+                "longitude": -74.0060
+              }')
+            status_code=$(echo "$response" | tail -n1)
+            body=$(echo "$response" | head -n-1)
+            
+            if [ "$status_code" -eq 201 ] || [ "$status_code" -eq 200 ]; then
+              echo "✅ POST /api/restaurants passed (Status: $status_code)" >> api_test_results.md
+              echo "\`\`\`json" >> api_test_results.md
+              echo "$body" | jq '.' >> api_test_results.md || echo "$body" >> api_test_results.md
+              echo "\`\`\`" >> api_test_results.md
+            else
+              echo "❌ POST /api/restaurants failed (Status: $status_code)" >> api_test_results.md
+              echo "Response: $body" >> api_test_results.md
+            fi
+          else
+            echo "⚠️  Skipped - no authentication token available" >> api_test_results.md
+          fi
+          echo "" >> api_test_results.md
+          
+          echo "✨ All critical API tests completed!"
+      
+      - name: Display API test results
+        if: always()
+        run: |
+          echo "## 🐳 Docker Compose Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          cat api_test_results.md >> $GITHUB_STEP_SUMMARY
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose logs
+          docker-compose down -v
