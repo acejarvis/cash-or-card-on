@@ -71,10 +71,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Install Docker Compose
+      - name: Set up build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y docker-compose
+          sudo apt-get install -y \
+            docker-compose \
+            curl \
+            jq
+          
+          # Verify installations
+          docker --version
+          docker-compose --version
+          curl --version
+          jq --version
       
       - name: Create .env file
         run: |
