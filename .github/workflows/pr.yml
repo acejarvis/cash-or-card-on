@@ -20,16 +20,41 @@ jobs:
       
       - name: Count lines of code
         run: |
-          cloc . --md > cloc_output.md
-          cloc .
+          cloc . --include-lang=JavaScript,CSS,HTML,SQL,Bourne\ Shell,Dockerfile,YAML --md > cloc_output.md
+          cloc . --include-lang=JavaScript,CSS,HTML,SQL,Bourne\ Shell,Dockerfile,YAML
       
       - name: Count lines by committer
         run: |
           echo "## Lines by Committer" > lines_by_committer.md
           echo "" >> lines_by_committer.md
           git log --format='%aN' | sort -u | while read author; do
+            echo "### $author" >> lines_by_committer.md
+            echo "" >> lines_by_committer.md
+            
+            # Overall statistics
             lines=$(git log --author="$author" --pretty=tformat: --numstat | awk '{ add += $1; subs += $2 } END { printf "%d additions, %d deletions", add, subs }')
-            echo "- **$author**: $lines" >> lines_by_committer.md
+            echo "**Total**: $lines" >> lines_by_committer.md
+            echo "" >> lines_by_committer.md
+            
+            # Breakdown by file type
+            echo "**Breakdown by file type**:" >> lines_by_committer.md
+            for ext in js css html sql sh Dockerfile yaml yml; do
+              case $ext in
+                js) pattern="\.js$" label="JavaScript" ;;
+                css) pattern="\.css$" label="CSS" ;;
+                html) pattern="\.html$" label="HTML" ;;
+                sql) pattern="\.sql$" label="SQL" ;;
+                sh) pattern="\.sh$" label="Shell" ;;
+                Dockerfile) pattern="Dockerfile" label="Dockerfile" ;;
+                yaml|yml) pattern="\.(yaml|yml)$" label="YAML" ;;
+              esac
+              
+              type_lines=$(git log --author="$author" --pretty=tformat: --numstat | grep "$pattern" | awk '{ add += $1; subs += $2 } END { printf "%d additions, %d deletions", add, subs }')
+              if [ ! -z "$type_lines" ] && [ "$type_lines" != "0 additions, 0 deletions" ]; then
+                echo "- $label: $type_lines" >> lines_by_committer.md
+              fi
+            done
+            echo "" >> lines_by_committer.md
           done
       
       - name: Display lines of code in summary
