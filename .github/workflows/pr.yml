@@ -70,8 +70,41 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Check if only markdown files changed
+        id: check_files
+        run: |
+          # Get list of changed files
+          git fetch origin main
+          changed_files=$(git diff --name-only origin/main...HEAD)
+          echo "Changed files:"
+          echo "$changed_files"
+          
+          # Check if all changed files are markdown
+          non_md_files=$(echo "$changed_files" | grep -v '\.md$' || true)
+          
+          if [ -z "$non_md_files" ]; then
+            echo "only_markdown=true" >> $GITHUB_OUTPUT
+            echo "✅ Only markdown files changed - will skip Docker tests"
+          else
+            echo "only_markdown=false" >> $GITHUB_OUTPUT
+            echo "📦 Non-markdown files changed - will run Docker tests"
+          fi
+      
+      - name: Skip message
+        if: steps.check_files.outputs.only_markdown == 'true'
+        run: |
+          echo "## ⏭️ Docker Tests Skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Only markdown files were changed in this PR." >> $GITHUB_STEP_SUMMARY
+          echo "Docker build and API tests have been skipped to save CI resources." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ This is expected behavior for documentation-only changes." >> $GITHUB_STEP_SUMMARY
       
       - name: Set up build dependencies
+        if: steps.check_files.outputs.only_markdown != 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -86,6 +119,7 @@ jobs:
           jq --version
       
       - name: Create .env file
+        if: steps.check_files.outputs.only_markdown != 'true'
         run: |
           cat > .env << EOF
           NODE_ENV=production
@@ -98,17 +132,20 @@ jobs:
           EOF
       
       - name: Build and start Docker containers
+        if: steps.check_files.outputs.only_markdown != 'true'
         run: |
           docker-compose up -d --build
           echo "Waiting for services to be healthy..."
           sleep 30
       
       - name: Check container status
+        if: steps.check_files.outputs.only_markdown != 'true'
         run: |
           docker-compose ps
           docker-compose logs backend
       
       - name: Wait for backend to be ready
+        if: steps.check_files.outputs.only_markdown != 'true'
         run: |
           echo "Waiting for backend to be ready..."
           max_attempts=30
@@ -127,75 +164,96 @@ jobs:
           echo "Backend is ready!"
       
       - name: Test API endpoints
+        if: steps.check_files.outputs.only_markdown != 'true'
         run: |
+          # Create table header for summary
           echo "## 🧪 API Test Results" > api_test_results.md
           echo "" >> api_test_results.md
+          echo "| # | Test | Endpoint | Expected | Status |" >> api_test_results.md
+          echo "|---|------|----------|----------|--------|" >> api_test_results.md
           
           # Test 1: Health check
-          echo "### 1. 💓 Health Check" >> api_test_results.md
-          if curl -f http://localhost:3001/health; then
-            echo "✅ Health check passed" >> api_test_results.md
+          echo "=== Test 1: Health Check ==="
+          response=$(curl -s -w "\n%{http_code}" http://localhost:3001/health)
+          status_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
+          echo "Response body: $body"
+          echo "Status code: $status_code"
+          
+          if [ "$status_code" -eq 200 ]; then
+            echo "| 1 | 💓 Health Check | \`GET /health\` | 200 | ✅ Pass |" >> api_test_results.md
+            echo "✅ Health check passed"
           else
-            echo "❌ Health check failed" >> api_test_results.md
+            echo "| 1 | 💓 Health Check | \`GET /health\` | 200 | ❌ Fail |" >> api_test_results.md
+            echo "❌ Health check failed"
             exit 1
           fi
-          echo "" >> api_test_results.md
+          echo ""
           
           # Test 2: Get all restaurants (public endpoint)
-          echo "### 2. 🍽️ Get All Restaurants" >> api_test_results.md
+          echo "=== Test 2: Get All Restaurants ==="
           response=$(curl -s -w "\n%{http_code}" http://localhost:3001/api/restaurants)
           status_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | head -n-1)
+          echo "Response body (formatted):"
+          echo "$body" | jq '.' || echo "$body"
+          echo "Status code: $status_code"
           
           if [ "$status_code" -eq 200 ]; then
-            echo "✅ GET /api/restaurants passed (Status: $status_code)" >> api_test_results.md
-            echo "\`\`\`json" >> api_test_results.md
-            echo "$body" | jq '.' >> api_test_results.md || echo "$body" >> api_test_results.md
-            echo "\`\`\`" >> api_test_results.md
+            echo "| 2 | 🍽️ Get Restaurants | \`GET /api/restaurants\` | 200 | ✅ Pass |" >> api_test_results.md
+            echo "✅ GET /api/restaurants passed"
           else
-            echo "❌ GET /api/restaurants failed (Status: $status_code)" >> api_test_results.md
+            echo "| 2 | 🍽️ Get Restaurants | \`GET /api/restaurants\` | 200 | ❌ Fail |" >> api_test_results.md
+            echo "❌ GET /api/restaurants failed"
             exit 1
           fi
-          echo "" >> api_test_results.md
+          echo ""
           
           # Test 3: Register a new user
-          echo "### 3. 📝 User Registration" >> api_test_results.md
+          echo "=== Test 3: User Registration ==="
           response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:3001/api/auth/register \
             -H "Content-Type: application/json" \
             -d '{"username":"testuser","email":"test@example.com","password":"TestPass123!"}')
           status_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | head -n-1)
+          echo "Response body (formatted):"
+          echo "$body" | jq '.' || echo "$body"
+          echo "Status code: $status_code"
           
           if [ "$status_code" -eq 201 ] || [ "$status_code" -eq 200 ]; then
-            echo "✅ POST /api/auth/register passed (Status: $status_code)" >> api_test_results.md
-            echo "\`\`\`json" >> api_test_results.md
-            echo "$body" | jq '.' >> api_test_results.md || echo "$body" >> api_test_results.md
-            echo "\`\`\`" >> api_test_results.md
+            echo "| 3 | 📝 Register User | \`POST /api/auth/register\` | 201/200 | ✅ Pass |" >> api_test_results.md
+            echo "✅ POST /api/auth/register passed"
           else
-            echo "⚠️  POST /api/auth/register returned status $status_code (may be expected if user exists)" >> api_test_results.md
+            echo "| 3 | 📝 Register User | \`POST /api/auth/register\` | 201/200 | ⚠️ Skip |" >> api_test_results.md
+            echo "⚠️ POST /api/auth/register returned status $status_code (may be expected if user exists)"
           fi
-          echo "" >> api_test_results.md
+          echo ""
           
           # Test 4: User login
-          echo "### 4. 🔐 User Login" >> api_test_results.md
+          echo "=== Test 4: User Login ==="
           response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:3001/api/auth/login \
             -H "Content-Type: application/json" \
             -d '{"email":"test@example.com","password":"TestPass123!"}')
           status_code=$(echo "$response" | tail -n1)
           body=$(echo "$response" | head -n-1)
+          echo "Response body (formatted):"
+          echo "$body" | jq '.' || echo "$body"
+          echo "Status code: $status_code"
           
           if [ "$status_code" -eq 200 ]; then
-            echo "✅ POST /api/auth/login passed (Status: $status_code)" >> api_test_results.md
+            echo "| 4 | 🔐 User Login | \`POST /api/auth/login\` | 200 | ✅ Pass |" >> api_test_results.md
             token=$(echo "$body" | jq -r '.token' 2>/dev/null || echo "")
-            echo "🎟️ Token received: ${token:0:20}..." >> api_test_results.md
+            echo "✅ POST /api/auth/login passed"
+            echo "🎟️ Token received: ${token:0:20}..."
           else
-            echo "❌ POST /api/auth/login failed (Status: $status_code)" >> api_test_results.md
+            echo "| 4 | 🔐 User Login | \`POST /api/auth/login\` | 200 | ❌ Fail |" >> api_test_results.md
+            echo "❌ POST /api/auth/login failed"
             token=""
           fi
-          echo "" >> api_test_results.md
+          echo ""
           
           # Test 5: Create a new restaurant (authenticated)
-          echo "### 5. 🏪 Create New Restaurant" >> api_test_results.md
+          echo "=== Test 5: Create New Restaurant (Authenticated) ==="
           if [ ! -z "$token" ]; then
             response=$(curl -s -w "\n%{http_code}" -X POST http://localhost:3001/api/restaurants \
               -H "Content-Type: application/json" \
@@ -215,32 +273,35 @@ jobs:
               }')
             status_code=$(echo "$response" | tail -n1)
             body=$(echo "$response" | head -n-1)
+            echo "Response body (formatted):"
+            echo "$body" | jq '.' || echo "$body"
+            echo "Status code: $status_code"
             
             if [ "$status_code" -eq 201 ] || [ "$status_code" -eq 200 ]; then
-              echo "✅ POST /api/restaurants passed (Status: $status_code)" >> api_test_results.md
-              echo "\`\`\`json" >> api_test_results.md
-              echo "$body" | jq '.' >> api_test_results.md || echo "$body" >> api_test_results.md
-              echo "\`\`\`" >> api_test_results.md
+              echo "| 5 | 🏪 Create Restaurant | \`POST /api/restaurants\` | 201/200 | ✅ Pass |" >> api_test_results.md
+              echo "✅ POST /api/restaurants passed"
             else
-              echo "❌ POST /api/restaurants failed (Status: $status_code)" >> api_test_results.md
-              echo "Response: $body" >> api_test_results.md
+              echo "| 5 | 🏪 Create Restaurant | \`POST /api/restaurants\` | 201/200 | ❌ Fail |" >> api_test_results.md
+              echo "❌ POST /api/restaurants failed"
+              echo "Response: $body"
             fi
           else
-            echo "⚠️  Skipped - no authentication token available" >> api_test_results.md
+            echo "| 5 | 🏪 Create Restaurant | \`POST /api/restaurants\` | 201/200 | ⚠️ Skip |" >> api_test_results.md
+            echo "⚠️ Skipped - no authentication token available"
           fi
-          echo "" >> api_test_results.md
+          echo ""
           
           echo "✨ All critical API tests completed!"
       
       - name: Display API test results
-        if: always()
+        if: always() && steps.check_files.outputs.only_markdown != 'true'
         run: |
           echo "## 🐳 Docker Compose Test Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           cat api_test_results.md >> $GITHUB_STEP_SUMMARY
       
       - name: Cleanup
-        if: always()
+        if: always() && steps.check_files.outputs.only_markdown != 'true'
         run: |
           docker-compose logs
           docker-compose down -v
