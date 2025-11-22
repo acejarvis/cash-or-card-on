@@ -12,6 +12,8 @@ const authRoutes = require('./routes/auth');
 const restaurantRoutes = require('./routes/restaurants');
 const paymentMethodRoutes = require('./routes/paymentMethods');
 const cashDiscountRoutes = require('./routes/cashDiscounts');
+const ratingsRoutes = require('./routes/ratings');
+const adminRoutes = require('./routes/admin');
 
 // Create Express app
 const app = express();
@@ -65,6 +67,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
 app.use('/api/payment-methods', paymentMethodRoutes);
 app.use('/api/cash-discounts', cashDiscountRoutes);
+app.use('/api/ratings', ratingsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

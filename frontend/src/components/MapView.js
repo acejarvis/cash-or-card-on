@@ -70,10 +70,10 @@ const FitBoundsHandler = ({ markers }) => {
   useEffect(() => {
     if (!markers.length || hasFitRef.current) return;
 
-    
+
     const timer = setTimeout(() => {
       try {
-  const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]));
+        const bounds = L.latLngBounds(markers.map((m) => [m.lat, m.lng]));
         map.fitBounds(bounds, { padding: [60, 60], maxZoom: 15 });
         hasFitRef.current = true;
       } catch (e) {
@@ -133,25 +133,25 @@ const MapView = ({ restaurants = [], hoveredRestaurantId = null }) => {
     }
 
     // Helper to create a search string
-      // Strip unit/suite/apt/etc from addresses to improve geocoding (e.g. "Unit 1A")
-      const cleanAddress = (addr) => {
-        if (!addr) return '';
-        // remove parenthetical content
-        let s = String(addr).replace(/\(.*?\)/g, '');
-        // remove trailing unit/suite/apt hashtags and anything after them
-        s = s.replace(/(?:,)?\s*(?:unit|ste|suite|apt|apartment|#|rm|room|floor|fl)\b.*$/i, '');
-        // remove any isolated #123 or Unit 1A patterns anywhere
-        s = s.replace(/\b(?:unit|suite|apt|apartment)\b[\s#.:,-]*[A-Za-z0-9-]*/ig, '');
-        s = s.replace(/#/g, '');
-        // collapse spaces and trim
-        return s.replace(/\s+/g, ' ').trim();
-      };
+    // Strip unit/suite/apt/etc from addresses to improve geocoding (e.g. "Unit 1A")
+    const cleanAddress = (addr) => {
+      if (!addr) return '';
+      // remove parenthetical content
+      let s = String(addr).replace(/\(.*?\)/g, '');
+      // remove trailing unit/suite/apt hashtags and anything after them
+      s = s.replace(/(?:,)?\s*(?:unit|ste|suite|apt|apartment|#|rm|room|floor|fl)\b.*$/i, '');
+      // remove any isolated #123 or Unit 1A patterns anywhere
+      s = s.replace(/\b(?:unit|suite|apt|apartment)\b[\s#.:,-]*[A-Za-z0-9-]*/ig, '');
+      s = s.replace(/#/g, '');
+      // collapse spaces and trim
+      return s.replace(/\s+/g, ' ').trim();
+    };
 
-      const addrKey = (r) => {
-        const raw = `${r.address || ''} ${r.city || ''} ${r.postal_code || r.postalCode || ''}`.trim();
-        const cleaned = `${cleanAddress(r.address || '')} ${r.city || ''} ${r.postal_code || r.postalCode || ''}`.trim();
-        return { raw, cleaned };
-      };
+    const addrKey = (r) => {
+      const raw = `${r.address || ''} ${r.city || ''} ${r.postal_code || r.postalCode || ''}`.trim();
+      const cleaned = `${cleanAddress(r.address || '')} ${r.city || ''} ${r.postal_code || r.postalCode || ''}`.trim();
+      return { raw, cleaned };
+    };
 
     const toGeocode = needGeo.map((r) => {
       const { raw, cleaned } = addrKey(r);
@@ -167,19 +167,19 @@ const MapView = ({ restaurants = [], hoveredRestaurantId = null }) => {
         const { raw, cleaned } = addrKey(r);
         const cached = cache[cleaned] || cache[raw];
         if (cached && currentRestaurantIds.has(r.id)) {
-          return { 
-            id: r.id, 
-            lat: cached.lat, 
-            lng: cached.lng, 
-            name: r.name, 
-            address: r.address, 
-            city: r.city 
+          return {
+            id: r.id,
+            lat: cached.lat,
+            lng: cached.lng,
+            name: r.name,
+            address: r.address,
+            city: r.city
           };
         }
         return null;
       })
       .filter(Boolean);
-    
+
     // Set cached markers immediately so they can be displayed
     setGeocodedMarkers(cachedEntries);
 
@@ -223,28 +223,28 @@ const MapView = ({ restaurants = [], hoveredRestaurantId = null }) => {
         // Show ONLY markers for current restaurants, not all cached entries
         const currentRestaurantIds = new Set((restaurants || []).map(r => r.id));
         const currentMarkers = [];
-        
+
         // Add newly geocoded results
         currentMarkers.push(...results);
-        
+
         // Add cached entries that match current restaurants
         for (const r of needGeo) {
           if (currentRestaurantIds.has(r.id)) {
             const { raw, cleaned } = addrKey(r);
             const cached = cache[cleaned] || cache[raw];
             if (cached && !results.find(res => res.id === r.id)) {
-              currentMarkers.push({ 
-                id: r.id, 
-                lat: cached.lat, 
-                lng: cached.lng, 
-                name: r.name, 
-                address: r.address, 
-                city: r.city 
+              currentMarkers.push({
+                id: r.id,
+                lat: cached.lat,
+                lng: cached.lng,
+                name: r.name,
+                address: r.address,
+                city: r.city
               });
             }
           }
         }
-        
+
         setGeocodedMarkers(currentMarkers);
       }
     })();
@@ -253,37 +253,25 @@ const MapView = ({ restaurants = [], hoveredRestaurantId = null }) => {
   }, [restaurants]);
 
   return (
-    <div style={{ 
-      height: 780, /* 520px * 1.5 = 780px (50% taller) */
+    <div style={{
+      height: '100%',
       width: '100%',
       position: 'relative',
       overflow: 'hidden'
     }}>
-      {/* Fade overlay for edges */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        pointerEvents: 'none',
-        zIndex: 400,
-        boxShadow: 'inset 0 0 60px 20px rgba(250, 250, 250, 0.9)',
-        borderRadius: 8
-      }} />
-      <MapContainer 
-        center={INITIAL_CENTER} 
-        zoom={13} 
-        style={{ 
-          height: '100%', 
-          width: '100%', 
-          borderRadius: 8,
+      <MapContainer
+        center={INITIAL_CENTER}
+        zoom={13}
+        style={{
+          height: '100%',
+          width: '100%',
+          borderRadius: 0, // Remove border radius for full panel fit
           border: 'none'
         }}
       >
-        <TileLayer 
-          attribution='&copy; OpenStreetMap contributors' 
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
+        <TileLayer
+          attribution='&copy; OpenStreetMap contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <FitBoundsHandler markers={markers} />
         {markers.map((m) => {
@@ -294,12 +282,12 @@ const MapView = ({ restaurants = [], hoveredRestaurantId = null }) => {
             position: [m.lat, m.lng],
             zIndexOffset: isHighlighted ? 1000 : 0
           };
-          
+
           // Only add icon prop if highlighted (otherwise use default Leaflet icon)
           if (isHighlighted) {
             markerProps.icon = createHighlightedIcon();
           }
-          
+
           return (
             <Marker {...markerProps}>
               <Popup>

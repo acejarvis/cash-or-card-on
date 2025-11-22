@@ -3,7 +3,7 @@ import './AdminPanelModal.css';
 import RestaurantDetailsModal from './RestaurantDetailsModal';
 import { titleCase, formatPostalCode } from '../utils/format';
 
-const AdminPanelModal = ({ restaurants = [], onClose }) => {
+const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const perPage = 10;
@@ -16,9 +16,11 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
   }, [restaurants]);
 
   const filteredRestaurants = useMemo(() => {
+    // Filter out unverified restaurants (they appear in Pending Approvals tab only)
+    const verifiedItems = items.filter(r => r.is_verified !== false);
     const q = String(search || '').trim().toLowerCase();
-    if (!q) return items;
-    return items.filter((r) => {
+    if (!q) return verifiedItems;
+    return verifiedItems.filter((r) => {
       const id = String(r.id || r.restaurant_id || r._id || '').toLowerCase();
       const name = String(r.name || '').toLowerCase();
       const city = String(r.city || '').toLowerCase();
@@ -39,7 +41,7 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
   const [newRestaurant, setNewRestaurant] = useState({
     name: '', address: '', city: '', province: 'Ontario', postal_code: '', phone: '', category: 'Other', cuisine_tags: '', website_url: ''
   });
-  const dayKeys = ['monday','tuesday','wednesday','thursday','friday','saturday','sunday'];
+  const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const dayLabels = { monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun' };
   const getDefaultOperatingHours = () => {
     const obj = {};
@@ -57,6 +59,8 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
   const [editDiscountValue, setEditDiscountValue] = useState('');
   const [editDiscountId, setEditDiscountId] = useState(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [pendingItems, setPendingItems] = useState({ restaurants: [], paymentMethods: [], cashDiscounts: [] });
+  const [activeTab, setActiveTab] = useState('restaurants'); // 'restaurants' or 'pending'
 
   const canonicalPayments = [
     { key: 'amex', label: 'Amex' },
@@ -101,6 +105,64 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
     setIsSavingEdit(false);
   };
 
+  const fetchPending = async () => {
+    try {
+      const token = sessionStorage.getItem('auth_token');
+      const resp = await fetch(`${API_BASE_URL}/admin/pending`, {
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        setPendingItems(data);
+      }
+    } catch (e) {
+      console.error('Failed to fetch pending items', e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'pending') {
+      fetchPending();
+    }
+  }, [activeTab]);
+
+  const handleApprove = async (type, id) => {
+    try {
+      const token = sessionStorage.getItem('auth_token');
+      const resp = await fetch(`${API_BASE_URL}/admin/approve/${type}/${id}`, {
+        method: 'POST',
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      if (resp.ok) {
+        showToast('Approved');
+        fetchPending();
+        if (onRefresh) onRefresh();
+      } else {
+        showToast('Failed to approve');
+      }
+    } catch (e) {
+      showToast('Network error');
+    }
+  };
+
+  const handleReject = async (type, id) => {
+    try {
+      const token = sessionStorage.getItem('auth_token');
+      const resp = await fetch(`${API_BASE_URL}/admin/reject/${type}/${id}`, {
+        method: 'POST',
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      });
+      if (resp.ok) {
+        showToast('Rejected');
+        fetchPending();
+      } else {
+        showToast('Failed to reject');
+      }
+    } catch (e) {
+      showToast('Network error');
+    }
+  };
+
   const toggleEditPayment = async (index) => {
     // Local-only toggle; actual submit happens in Save & Submit
     setEditPayments((prev) => prev.map((it, i) => i === index ? { ...it, isAccepted: !it.isAccepted } : it));
@@ -109,7 +171,7 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
   const saveAndSubmitEdits = async () => {
     if (!editingRestaurant) return;
     setIsSavingEdit(true);
-    const token = localStorage.getItem('auth_token');
+    const token = sessionStorage.getItem('auth_token');
     const restId = editingRestaurant.id || editingRestaurant.restaurant_id || editingRestaurant._id;
     const updatedPayments = [];
     try {
@@ -138,8 +200,8 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
             await fetch(`${API_BASE_URL}/payment-methods/${encodeURIComponent(pmId)}/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-            }).catch(() => {});
-          } catch (e) {}
+            }).catch(() => { });
+          } catch (e) { }
         }
 
         // verify payment method (admin action)
@@ -148,8 +210,8 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
             await fetch(`${API_BASE_URL}/payment-methods/${encodeURIComponent(pmId)}/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-            }).catch(() => {});
-          } catch (e) {}
+            }).catch(() => { });
+          } catch (e) { }
         }
 
         updatedPayments.push({ id: pmId, type: p.key, is_accepted: !!p.isAccepted, is_verified: true });
@@ -203,8 +265,8 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
             await fetch(`${API_BASE_URL}/cash-discounts/${encodeURIComponent(newId)}/verify`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-            }).catch(() => {});
-          } catch (e) {}
+            }).catch(() => { });
+          } catch (e) { }
         }
 
         newDiscount = { id: newId || editDiscountId || null, percentage: pct, is_verified: true };
@@ -220,8 +282,8 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
             const key = (m.type || m.name || '').toString().toLowerCase().replace(/[^a-z0-9]/g, '');
             return !canonicalPayments.find(cp => cp.key === key);
           });
-          next.payment_methods = [ ...other, ...updatedPayments ];
-          if (newDiscount) next.cash_discounts = [ newDiscount ];
+          next.payment_methods = [...other, ...updatedPayments];
+          if (newDiscount) next.cash_discounts = [newDiscount];
           return next;
         }
         return it;
@@ -241,7 +303,7 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
     if (Number.isNaN(pct)) { showToast('Invalid discount'); return; }
     setIsSavingEdit(true);
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = sessionStorage.getItem('auth_token');
       // create new discount (or create a replacement) then verify it
       const resp = await fetch(`${API_BASE_URL}/cash-discounts`, {
         method: 'POST',
@@ -255,7 +317,7 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
         await fetch(`${API_BASE_URL}/cash-discounts/${encodeURIComponent(newId)}/verify`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        }).catch(() => {});
+        }).catch(() => { });
       }
       // update local items: replace or set cash_discounts[0]
       setItems((prev) => prev.map((it) => {
@@ -291,89 +353,104 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
       <div className={`admin-modal ${needsFixedHeight ? 'fixed-height' : ''}`} onClick={(e) => e.stopPropagation()}>
         <div className="admin-header">
           <h2>Restaurant Management</h2>
-          <div className="admin-actions">
-            <button className="button" onClick={() => { setNewOperatingHours(getDefaultOperatingHours()); setShowCreateModal(true); }}>Create Restaurant</button>
-            <input
-              className="admin-search"
-              placeholder="Search by id, name or city..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            />
-            <button className="button small" onClick={onClose}>Close</button>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+            <div className="admin-tabs" style={{ display: 'flex', gap: '12px' }}>
+              <button className={`button ${activeTab === 'restaurants' ? 'primary' : ''}`} onClick={() => setActiveTab('restaurants')}>Restaurants</button>
+              <button className={`button ${activeTab === 'pending' ? 'primary' : ''}`} onClick={() => setActiveTab('pending')}>Pending Approvals</button>
+            </div>
+            {activeTab === 'restaurants' && (
+              <div className="admin-actions">
+                <button className="button" onClick={() => { setNewOperatingHours(getDefaultOperatingHours()); setShowCreateModal(true); }}>Create Restaurant</button>
+                <input
+                  className="admin-search"
+                  placeholder="Search by id, name or city..."
+                  value={search}
+                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                />
+                <button className="button small" onClick={onClose}>Close</button>
+              </div>
+            )}
+            {activeTab === 'pending' && (
+              <div className="admin-actions">
+                <button className="button small" onClick={fetchPending}>Refresh</button>
+                <button className="button small" onClick={onClose}>Close</button>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className={`admin-table-wrap ${needsFixedHeight ? 'fixed' : ''}`}>
+        <div className={`admin-table-wrap ${needsFixedHeight ? 'fixed' : ''}`} style={{ display: activeTab === 'restaurants' ? 'block' : 'none' }}>
           <table className="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>City</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pageItems.map((r) => {
-              const rawId = r.id || r.restaurant_id || r._id || '';
-              const idStr = String(rawId);
-              // If the id is all-digits, pad to 3 for nicer display, otherwise show as-is
-              const displayId = /^\d+$/.test(idStr) ? idStr.padStart(3, '0') : idStr;
-              const key = rawId || r.name || Math.random();
-              return (
-                <tr key={key}>
-                  <td>{displayId || '—'}</td>
-                  <td>{titleCase(r.name)}</td>
-                  <td>{titleCase(r.city)}</td>
-                  <td>
-                    {r.status === 'active' && <span className="status-active">✓ Active</span>}
-                    {r.status === 'pending' && <span className="status-pending">⚠️ Pending</span>}
-                    {r.status === 'inactive' && <span className="status-inactive">❌ Inactive</span>}
-                  </td>
-                  <td>
-                    <button className="button small" onClick={() => openEditModal(r)}>Edit</button>
-                    <button className="button small" onClick={() => setSelectedRestaurant(r)}>View</button>
-                    <button className="button small" onClick={async () => {
-                      // Delete restaurant via backend API and remove locally (no page reload)
-                      const idToDelete = rawId;
-                      if (!idToDelete) { showToast('Unable to determine id for delete'); return; }
-                      const API_BASE_URL = process.env.REACT_APP_API_BASE || 'http://localhost:3001/api';
-                      const token = localStorage.getItem('auth_token');
-                      try {
-                        const resp = await fetch(`${API_BASE_URL}/restaurants/${encodeURIComponent(idToDelete)}`, {
-                          method: 'DELETE',
-                          headers: {
-                            'Content-Type': 'application/json',
-                            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                          },
-                        });
-                        let body = null;
-                        try { body = await resp.json(); } catch (e) { /* ignore json parse errors */ }
-                        if (!resp.ok) {
-                          const msg = body && body.message ? body.message : `Delete failed (${resp.status})`;
-                          showToast(msg);
-                          return;
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>City</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pageItems.map((r) => {
+                const rawId = r.id || r.restaurant_id || r._id || '';
+                const idStr = String(rawId);
+                // If the id is all-digits, pad to 3 for nicer display, otherwise show as-is
+                const displayId = /^\d+$/.test(idStr) ? idStr.padStart(3, '0') : idStr;
+                const key = rawId || r.name || Math.random();
+                return (
+                  <tr key={key}>
+                    <td>{displayId || '—'}</td>
+                    <td>{titleCase(r.name)}</td>
+                    <td>{titleCase(r.city)}</td>
+                    <td>
+                      {r.status === 'active' && <span className="status-active">✓ Active</span>}
+                      {r.status === 'pending' && <span className="status-pending">⚠️ Pending</span>}
+                      {r.status === 'inactive' && <span className="status-inactive">❌ Inactive</span>}
+                    </td>
+                    <td>
+                      <button className="button small" onClick={() => openEditModal(r)}>Edit</button>
+                      <button className="button small" onClick={() => setSelectedRestaurant(r)}>View</button>
+                      <button className="button small" onClick={async () => {
+                        // Delete restaurant via backend API and remove locally (no page reload)
+                        const idToDelete = rawId;
+                        if (!idToDelete) { showToast('Unable to determine id for delete'); return; }
+                        const API_BASE_URL = process.env.REACT_APP_API_BASE || 'http://localhost:3001/api';
+                        const token = sessionStorage.getItem('auth_token');
+                        try {
+                          const resp = await fetch(`${API_BASE_URL}/restaurants/${encodeURIComponent(idToDelete)}`, {
+                            method: 'DELETE',
+                            headers: {
+                              'Content-Type': 'application/json',
+                              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                            },
+                          });
+                          let body = null;
+                          try { body = await resp.json(); } catch (e) { /* ignore json parse errors */ }
+                          if (!resp.ok) {
+                            const msg = body && body.message ? body.message : `Delete failed (${resp.status})`;
+                            showToast(msg);
+                            return;
+                          }
+                          // remove from local items so UI reflects deletion immediately
+                          setItems((prev) => prev.filter((it) => {
+                            const ids = [it.id, it.restaurant_id, it._id].filter(Boolean).map(String);
+                            return !ids.includes(String(idToDelete));
+                          }));
+                          showToast('Restaurant deleted');
+                          if (onRefresh) onRefresh();
+                        } catch (err) {
+                          showToast('Network error during delete');
                         }
-                        // remove from local items so UI reflects deletion immediately
-                        setItems((prev) => prev.filter((it) => {
-                          const ids = [it.id, it.restaurant_id, it._id].filter(Boolean).map(String);
-                          return !ids.includes(String(idToDelete));
-                        }));
-                        showToast('Restaurant deleted');
-                      } catch (err) {
-                        showToast('Network error during delete');
-                      }
-                    }}>Delete</button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
+                      }}>Delete</button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
           </table>
         </div>
 
-        <div className="admin-footer">
+        <div className="admin-footer" style={{ display: activeTab === 'restaurants' ? 'flex' : 'none' }}>
           <div>Showing {start + 1}-{end} of {total} restaurants</div>
           <div className="pagination">
             <button disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>&lt; Previous</button>
@@ -384,14 +461,111 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
           </div>
         </div>
         {/* Pending reviews placeholder */}
-        <div className="pending-reviews">
-          <h3>Pending Reviews</h3>
-          <div className="pending-reviews-list">
-            {/* empty for now */}
+        {/* Pending reviews placeholder */}
+        {activeTab === 'pending' && (
+          <div className="pending-reviews" style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+            {/* Pending Restaurants - Hidden per user request */}
+            {/* {pendingItems.restaurants && pendingItems.restaurants.length > 0 && (
+              <div style={{ marginBottom: '24px' }}>
+                <h3>Pending Restaurants</h3>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>City</th>
+                      <th>Submitted By</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingItems.restaurants.map(r => (
+                      <tr key={r.id}>
+                        <td>{titleCase(r.name || '')}</td>
+                        <td>{titleCase(r.city || '')}</td>
+                        <td>{r.submitted_by_username || 'Unknown'}</td>
+                        <td>
+                          <button className="button small primary" onClick={() => handleApprove('restaurant', r.id)}>Approve</button>
+                          <button className="button small" onClick={() => handleReject('restaurant', r.id)}>Reject</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )} */}
+
+
+            {/* Pending Payment Methods */}
+            {pendingItems.paymentMethods && pendingItems.paymentMethods.length > 0 && (
+              <div style={{ marginBottom: '24px' }}>
+                <h3>Pending Payment Methods</h3>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Restaurant</th>
+                      <th>Type</th>
+                      <th>Accepted?</th>
+                      <th>Submitted By</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingItems.paymentMethods.map(pm => (
+                      <tr key={pm.id}>
+                        <td>{titleCase(pm.restaurant_name || '')}</td>
+                        <td>{titleCase(pm.payment_type || '')}</td>
+                        <td>{pm.is_accepted ? 'Yes' : 'No'}</td>
+                        <td>{pm.submitted_by_username || 'Unknown'}</td>
+                        <td>
+                          <button className="button small primary" onClick={() => handleApprove('payment-method', pm.id)}>Approve</button>
+                          <button className="button small" onClick={() => handleReject('payment-method', pm.id)}>Reject</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Pending Cash Discounts */}
+            {pendingItems.cashDiscounts && pendingItems.cashDiscounts.length > 0 && (
+              <div style={{ marginBottom: '24px' }}>
+                <h3>Pending Cash Discounts</h3>
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th>Restaurant</th>
+                      <th>Discount</th>
+                      <th>Submitted By</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingItems.cashDiscounts.map(cd => (
+                      <tr key={cd.id}>
+                        <td>{titleCase(cd.restaurant_name || '')}</td>
+                        <td>{cd.discount_percentage}%</td>
+                        <td>{cd.submitted_by_username || 'Unknown'}</td>
+                        <td>
+                          <button className="button small primary" onClick={() => handleApprove('cash-discount', cd.id)}>Approve</button>
+                          <button className="button small" onClick={() => handleReject('cash-discount', cd.id)}>Reject</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {(!pendingItems.paymentMethods?.length && !pendingItems.cashDiscounts?.length) && (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                No pending items to review.
+              </div>
+            )}
           </div>
-        </div>
+        )}
         {/* Edit modal (admin) */}
-            {editingRestaurant && (
+        {editingRestaurant && (
           <div className="edit-overlay" onClick={() => setEditingRestaurant(null)}>
             <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
               <h3>Edit: {titleCase(editingRestaurant.name)}</h3>
@@ -468,12 +642,12 @@ const AdminPanelModal = ({ restaurants = [], onClose }) => {
                   ))}
                 </div>
               </div>
-                <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
                 <button className="button small" onClick={() => setShowCreateModal(false)}>Cancel</button>
                 <button className="button primary" onClick={async () => {
                   // basic validation
                   if (!newRestaurant.name || !newRestaurant.address || !newRestaurant.city || !newRestaurant.category) { showToast('Please fill required fields'); return; }
-                  const token = localStorage.getItem('auth_token');
+                  const token = sessionStorage.getItem('auth_token');
                   // prepare payload
                   const payload = { ...newRestaurant };
                   // convert cuisine_tags string to array
