@@ -29,7 +29,7 @@ class CashDiscountDAO {
   // Vote on cash discount
   async vote(cashDiscountId, userId, voteType) {
     const client = await pool.connect();
-    
+
     try {
       await client.query('BEGIN');
 
@@ -131,6 +131,19 @@ class CashDiscountDAO {
     const query = 'SELECT * FROM cash_discount_votes WHERE cash_discount_id = $1 AND user_id = $2';
     const result = await pool.query(query, [cashDiscountId, userId]);
     return result.rows[0];
+  }
+  // Get pending cash discounts
+  async getPending() {
+    const query = `
+      SELECT cd.*, r.name as restaurant_name, u.username as submitted_by_username
+      FROM cash_discounts cd
+      JOIN restaurants r ON cd.restaurant_id = r.id
+      LEFT JOIN users u ON cd.submitted_by = u.id
+      WHERE cd.is_verified = false
+      ORDER BY cd.created_at DESC
+    `;
+    const result = await pool.query(query);
+    return result.rows;
   }
 }
 

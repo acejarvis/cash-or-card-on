@@ -56,10 +56,7 @@ const getRestaurantStatus = (operatingHours) => {
 };
 
 const renderStars = (restaurant) => {
-  let avgRating = 0;
-  if (restaurant.ratings && restaurant.ratings.length > 0) {
-    avgRating = restaurant.ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / restaurant.ratings.length;
-  }
+  const avgRating = parseFloat(restaurant.average_rating) || 0;
   const rounded = Math.round(avgRating);
   const stars = Array.from({ length: 5 }, (_, i) => (i < rounded ? '★' : '☆')).join('');
   const numeric = avgRating ? ` ${avgRating.toFixed(1)}` : ' N/A';
@@ -90,17 +87,30 @@ const getTopDiscount = (discounts) => {
   }, active[0]);
 };
 
-const RestaurantCard = ({ restaurant, onClick, onMouseEnter, onMouseLeave, index = 0, isFiltering = false }) => {
+const RestaurantCard = ({ restaurant, onClick, onMouseEnter, onMouseLeave, isFiltering = false }) => {
   const status = getRestaurantStatus(restaurant.operating_hours);
   const topDiscount = getTopDiscount(restaurant.cash_discounts);
 
   // compute stagger delay
-  const delay = isFiltering ? Math.min(12, index) * 35 : 0; // up to ~420ms
+  const delay = isFiltering ? 0 : 0; // removed index dependency for delay to simplify
 
-  // prepare left/right column strings so we can set title attributes for long text
-  const cuisineText = restaurant.category ? titleCase(restaurant.category) : 'Category N/A';
-  const paymentsText = (restaurant.payment_methods || []).filter(m => (m.is_accepted === undefined ? true : m.is_accepted)).map((method) => titleCase(method.type || method.name)).join(', ') || 'No acceptable payment methods';
+  // Prioritize cuisine_tags, fallback to category. Filter out "Others" if possible or just use tags.
+  let displayCategory = 'Category N/A';
+  if (restaurant.cuisine_tags && restaurant.cuisine_tags.length > 0) {
+    displayCategory = restaurant.cuisine_tags.map(titleCase).join(', ');
+  } else if (restaurant.category) {
+    displayCategory = titleCase(restaurant.category);
+  }
+
+  if (displayCategory === 'Others') displayCategory = ''; // Hide "Others" if that's all we have, per user preference? Or maybe just leave it empty.
+
+  const paymentsText = (restaurant.payment_methods || [])
+    .filter(m => (m.is_accepted === undefined ? true : m.is_accepted))
+    .map((method) => titleCase(method.type || method.name))
+    .join(', ') || 'No acceptable payment methods';
+
   const discountText = topDiscount ? `${topDiscount.percentage}% Cash Discount${topDiscount.verified ? ' (Verified)' : ''}` : 'No cash discount';
+
   // rating numeric for tooltip
   let ratingNumeric = 'N/A';
   if (restaurant.ratings && restaurant.ratings.length > 0) {
@@ -110,63 +120,68 @@ const RestaurantCard = ({ restaurant, onClick, onMouseEnter, onMouseLeave, index
 
   return (
     <div
-      className={`restaurant-card animate-in`}
+      className={`restaurant-card horizontal animate-in`}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <div className="card-split">
-        <div className="card-left">
-          <img
-            src={restaurantImg}
-            alt={`${restaurant.name || 'Restaurant'} logo`}
-            className="restaurant-logo"
-          />
-          <div className={`status-badge ${status}`}>
-            {status === 'open' && 'Open'}
-            {status === 'closed' && 'Closed'}
-            {status === 'closing-soon' && 'Closing Soon'}
+      <div className="card-image-container">
+        <img
+          src={restaurantImg}
+          alt={`${restaurant.name || 'Restaurant'} logo`}
+          className="restaurant-image"
+        />
+      </div>
+
+      <div className="card-content">
+        <div className="card-header">
+          <h3 className="card-title">
+            {titleCase(restaurant.name) || 'Unknown Restaurant'}
+          </h3>
+        </div>
+
+        <div className="card-rating-row">
+          {renderStars(restaurant)}
+        </div>
+
+        <div className="card-info-rows">
+          {/* Row 1: Category */}
+          {displayCategory && (
+            <div className="info-row">
+              <span className="tag-item category">{displayCategory}</span>
+            </div>
+          )}
+
+          {/* Row 2: City */}
+          <div className="info-row">
+            <span className="tag-item city">{titleCase(restaurant.city || '')}</span>
           </div>
 
-          <div className="address-compact" style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: '6px', alignItems: 'center'}}>
-            {(() => {
-              const addr = restaurant.address || '';
-              const city = restaurant.city || '';
-              const postal = restaurant.postal_code || restaurant.postalCode || '';
-                // show only city in the card view — omit postal code per UI preference
-                const cityOnly = titleCase(city);
-                if (!cityOnly) return <p className="address">Location not available</p>;
-                return (
-                  <p className="address city-postal">{cityOnly}</p>
-                );
-            })()}
+          {/* Row 3: Status */}
+          <div className="info-row">
+            {status === 'open' && (
+              <span className="status-text open">Open until {restaurant.operating_hours && restaurant.operating_hours[new Date().toLocaleString('en-US', { weekday: 'long' }).toLowerCase()]?.close}</span>
+            )}
+            {status === 'closing-soon' && (
+              <span className="status-text closing-soon">Closing soon</span>
+            )}
+            {status === 'closed' && (
+              <span className="status-text closed">Closed</span>
+            )}
           </div>
         </div>
 
-        <div className="card-right">
-          <h2 className="card-title">{titleCase(restaurant.name) || 'Unknown Restaurant'}</h2>
-
-          {/* Cuisine type row */}
-          <div className="info-row">
-            <div className="info-col left">Cuisine</div>
-            <div className="info-col right" title={cuisineText}>{cuisineText}</div>
-          </div>
-
-          {/* Rating row */}
-          <div className="info-row">
-            <div className="info-col left">Rating</div>
-            <div className="info-col right" title={`${ratingNumeric} stars`}>{renderStars(restaurant)}</div>
-          </div>
-
-          <div className="info-row">
-            <div className="info-col left">Payments</div>
-            <div className="info-col right" title={paymentsText}>{paymentsText}</div>
-          </div>
-
-          <div className="info-row">
-            <div className="info-col left">Cash Discount</div>
-            <div className="info-col right" title={discountText}>{discountText}</div>
+        <div className="card-actions">
+          {/* Tags for features */}
+          <div className="feature-tags" style={{ flexWrap: 'wrap' }}>
+            {topDiscount && (
+              <span className="feature-tag discount">{topDiscount.percentage}% Off</span>
+            )}
+            {/* Show all payment methods */}
+            {restaurant.payment_methods && restaurant.payment_methods.filter(m => (m.is_accepted === undefined ? true : m.is_accepted)).map((method, idx) => (
+              <span key={idx} className="feature-tag">{titleCase(method.type || method.name)}</span>
+            ))}
           </div>
         </div>
       </div>

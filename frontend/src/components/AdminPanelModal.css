@@ -2,7 +2,7 @@
 .admin-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(2,6,23,0.6);
+  background: rgba(2, 6, 23, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14,7 +14,8 @@
   max-width: 920px;
   background: var(--surface);
   border-radius: 10px;
-  padding: 10px; /* reduced */
+  padding: 10px;
+  /* reduced */
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border);
   max-height: calc(100vh - 80px);
@@ -49,9 +50,19 @@
 
 .admin-header {
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.admin-header h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 12px;
   align-items: center;
-  gap: 8px;
 }
 
 .admin-search {
@@ -59,15 +70,26 @@
   border-radius: 8px;
   border: 1px solid var(--border);
   background: var(--surface);
-  width: 260px; /* smaller */
+  width: 260px;
+  /* smaller */
   max-width: 40%;
   box-shadow: var(--shadow-sm);
   outline: none;
   font-size: 0.92rem;
 }
-.admin-search:focus { box-shadow: 0 0 0 4px rgba(3,102,214,0.12); border-color: var(--accent); }
 
-.admin-actions { display: flex; gap: 12px; margin-left: auto; justify-content: flex-end; align-items: center; }
+.admin-search:focus {
+  box-shadow: 0 0 0 4px rgba(3, 102, 214, 0.12);
+  border-color: var(--accent);
+}
+
+.admin-actions {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+  justify-content: flex-end;
+  align-items: center;
+}
 
 /* Make action buttons in the admin header more compact */
 .admin-actions .button {
@@ -85,71 +107,135 @@
 }
 
 /* When the modal is fixed-height, ensure the table wrapper doesn't collapse */
-.admin-table-wrap.fixed { min-height: 380px; }
+.admin-table-wrap.fixed {
+  min-height: 380px;
+}
 
-.admin-table { width: 100%; border-collapse: collapse; margin-top: 8px; border: 1px solid rgba(15,23,36,0.06); border-radius: 8px; overflow: hidden; }
-.admin-table th, .admin-table td { padding: 8px 8px; border-bottom: 1px solid rgba(15,23,36,0.06); text-align: left; font-size: 0.92rem; }
-.admin-table thead th { background: rgba(0,0,0,0.04); font-weight: 700; font-size: 0.92rem; }
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+  border: 1px solid rgba(15, 23, 36, 0.06);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 8px 8px;
+  border-bottom: 1px solid rgba(15, 23, 36, 0.06);
+  text-align: left;
+  font-size: 0.92rem;
+}
+
+.admin-table thead th {
+  background: rgba(0, 0, 0, 0.04);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
 /* vertical column dividers (except on last column) */
-.admin-table th:not(:last-child), .admin-table td:not(:last-child) { border-right: 1px solid rgba(15,23,36,0.06); }
-.admin-table tbody tr:nth-child(even) { background: rgba(0,0,0,0.02); }
+.admin-table th:not(:last-child),
+.admin-table td:not(:last-child) {
+  border-right: 1px solid rgba(15, 23, 36, 0.06);
+}
+
+.admin-table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
 /* hover to emphasize the row */
-.admin-table tbody tr:hover { background: rgba(3,102,214,0.04); }
+.admin-table tbody tr:hover {
+  background: rgba(3, 102, 214, 0.04);
+}
 
-.status-active { color: #047857; font-weight: 700; }
-.status-pending { color: #92400e; font-weight: 700; }
-.status-inactive { color: #b91c1c; font-weight: 700; }
+.status-active {
+  color: #047857;
+  font-weight: 700;
+}
 
-.admin-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px; }
+.status-pending {
+  color: #92400e;
+  font-weight: 700;
+}
+
+.status-inactive {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.admin-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  gap: 8px;
+}
 
 /* Compact action buttons inside the table rows (Edit / View / Delete) */
 .admin-table td .button {
-  margin: 6px 8px 6px 0; /* vertical spacing + horizontal spacing */
-  padding: 4px 8px; /* smaller button */
+  margin: 6px 8px 6px 0;
+  /* vertical spacing + horizontal spacing */
+  padding: 4px 8px;
+  /* smaller button */
   font-size: 0.86rem;
   border-radius: 6px;
   min-width: 42px;
-  display: inline-block; /* allow vertical margin when wrapping */
+  display: inline-block;
+  /* allow vertical margin when wrapping */
 }
-.admin-table td .button:last-child { margin-right: 0; }
 
-.pagination { display: flex; gap: 6px; align-items: center; }
+.admin-table td .button:last-child {
+  margin-right: 0;
+}
+
+.pagination {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
 
 .admin-toast {
   position: fixed;
   top: 22px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(3,102,214,0.95);
+  background: rgba(3, 102, 214, 0.95);
   color: white;
   padding: 8px 14px;
   border-radius: 8px;
   font-weight: 700;
   z-index: 1700;
-  box-shadow: 0 10px 30px rgba(3,102,214,0.14);
+  box-shadow: 0 10px 30px rgba(3, 102, 214, 0.14);
 }
 
 .pending-reviews {
   margin-top: 10px;
   padding: 8px;
-  border-top: 1px solid rgba(15,23,36,0.04);
+  border-top: 1px solid rgba(15, 23, 36, 0.04);
 }
+
 .pending-reviews h3 {
   margin: 0 0 8px 0;
   font-size: 1.05rem;
 }
-.pending-reviews-list { min-height: 56px; /* placeholder spacing */ }
+
+.pending-reviews-list {
+  min-height: 56px;
+  /* placeholder spacing */
+}
 
 /* Edit modal overlay */
 .edit-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(2,6,23,0.5);
+  background: rgba(2, 6, 23, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1700;
 }
+
 .edit-modal {
   width: 480px;
   max-width: 94%;
@@ -160,8 +246,23 @@
   border: 1px solid var(--border);
 }
 
-.edit-modal h3 { margin: 0 0 8px 0; }
-.edit-modal .input.small { width: 84px; }
+.edit-modal h3 {
+  margin: 0 0 8px 0;
+}
 
-.edit-modal .input { padding: 6px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); font-size: 0.92rem; }
-.edit-modal textarea.input { min-height: 64px; resize: vertical; }
+.edit-modal .input.small {
+  width: 84px;
+}
+
+.edit-modal .input {
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 0.92rem;
+}
+
+.edit-modal textarea.input {
+  min-height: 64px;
+  resize: vertical;
+}

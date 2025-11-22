@@ -6,85 +6,217 @@ body {
   background-color: #f8f9fa;
 }
 
+/* Prevent scrollbar shift when modal opens */
+body.modal-open {
+  overflow: hidden;
+  padding-right: var(--scrollbar-width, 0);
+}
+
 header {
-  /* Use the same background gradient as the page but slightly stronger for contrast */
-  background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
-  color: var(--text);
-  padding: 8px 0; /* more compact */
-  box-shadow: var(--shadow-md);
+  background: #fff;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e5e5;
+  position: relative;
+  z-index: 100;
 }
 
 header .header-content {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px; /* reduced gap for compact header */
+  justify-content: space-between;
   max-width: 1600px;
-  position: relative;
   margin: 0 auto;
+  padding: 0 24px;
+  gap: 24px;
 }
 
-.header-top {
+.header-left {
   display: flex;
-  justify-content: center;
   align-items: center;
+}
+
+.site-logo {
+  height: 56px;
+  /* Adjusted for standard nav bar height */
+  display: block;
+}
+
+/* Middle: Search Bar */
+.header-middle {
+  flex: 1;
+  max-width: 800px;
+}
+
+.search-bar-container {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  height: 48px;
   width: 100%;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
   position: relative;
 }
-.header-top h1 {
-  margin: 0;
+
+.search-label-text {
   font-weight: 700;
-  font-size: 1.7rem;
-  letter-spacing: -0.6px;
-  color: var(--text);
+  font-size: 14px;
+  color: #2d2e2f;
+  margin-right: 8px;
+  white-space: nowrap;
+  display: none;
+  /* Hidden on small screens, shown if space permits or just placeholder */
 }
 
-.site-logo { height: 65px; display: block; }
-
-.header-bottom {
+/* Actually, Yelp puts the label inside or as placeholder. 
+   Let's mimic the look: Text input with specific styling. 
+*/
+.search-input {
+  border: none;
+  outline: none;
+  font-size: 15px;
   width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center; /* vertically center items */
-  position: relative; /* allow absolutely positioned actions anchored to header-content */
+  color: #2d2e2f;
+  font-weight: 500;
+  background: transparent;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  /* Ensure it takes full height of wrapper for better alignment if needed, or just let flex handle it */
+  line-height: normal;
+  /* Reset line height */
 }
 
-header input {
-  padding: 0.5rem;
-  width: 300px;
-  margin: 0 1rem;
+.search-input::placeholder {
+  color: #707070;
+  font-weight: 400;
 }
 
-/* Action buttons in header (My Account / Admin / Login) */
-.header-actions {
-  position: absolute;
-  right: 18px; /* match .main-container padding so it aligns with right edge of map */
-  top: 0; /* align with top edge of logo inside .header-top */
+.search-submit-btn {
+  background-color: #e00707;
+  border: none;
+  height: 48px;
+  width: 48px;
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
   display: flex;
-  gap: 8px;
   align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
-.header-bottom input {
-  width: 56%;
-  max-width: 720px;
-  padding: 8px 14px; /* tighter */
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  box-shadow: var(--shadow-md);
-  font-size: 0.98rem;
-  outline: none;
-  transition: all 180ms cubic-bezier(.2,.9,.2,1);
+.search-submit-btn:hover {
+  background-color: #c40606;
 }
 
-.header-bottom input:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.3);
+/* Right: Nav Links & Auth */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 24px;
 }
 
-/* header time removed */
+.nav-link.text-only {
+  background: none;
+  border: none;
+  font-weight: 600;
+  color: #2d2e2f;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-link.text-only:hover {
+  border-bottom: 2px solid #e00707;
+  /* Yelp hover style */
+  padding-bottom: -2px;
+  /* prevent layout shift? actually border-bottom adds height. */
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  /* use border instead */
+  border-bottom: none;
+  text-decoration: none;
+  color: #4a4a4a;
+}
+
+.auth-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.nav-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-btn.outline {
+  background: #fff;
+  border: 1px solid #ccc;
+  color: #2d2e2f;
+}
+
+.nav-btn.outline:hover {
+  background: #f7f7f7;
+}
+
+.nav-btn.primary {
+  background: #e00707;
+  border: 1px solid #e00707;
+  color: #fff;
+}
+
+.nav-btn.primary:hover {
+  background: #c40606;
+  border-color: #c40606;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .nav-link.text-only {
+    display: none;
+  }
+}
+
+@media (max-width: 800px) {
+  header .header-content {
+    flex-direction: column;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .header-middle {
+    width: 100%;
+    max-width: 100%;
+    order: 2;
+  }
+
+  .header-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header-right {
+    display: none;
+    /* Hide standard nav on mobile, would need hamburger menu */
+  }
+
+  /* Show auth buttons in header-left for mobile if needed, or just hide for now */
+}
 
 .restaurant-list {
   display: flex;
@@ -96,12 +228,12 @@ header input {
 
 .restaurant-card {
   background: white;
-  border: 1px solid rgba(47,43,41,0.08);
+  border: 1px solid rgba(47, 43, 41, 0.08);
   border-radius: 8px;
   margin: 1rem;
   padding: 1rem;
   width: 380px;
-  box-shadow: 0 8px 28px rgba(47,43,41,0.05);
+  box-shadow: 0 8px 28px rgba(47, 43, 41, 0.05);
 }
 
 .restaurant-card h2 {
@@ -124,7 +256,7 @@ header input {
 .pagination button {
   padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid rgba(27,31,35,0.06);
+  border: 1px solid rgba(27, 31, 35, 0.06);
   background: transparent;
   color: var(--muted);
   font-weight: 600;
@@ -135,11 +267,12 @@ header input {
   background: linear-gradient(90deg, var(--accent), #2b8af6);
   color: white;
   box-shadow: var(--shadow-md);
-  border-color: rgba(47,43,41,0.12);
+  border-color: rgba(47, 43, 41, 0.12);
 }
 
 .App {
-  padding-bottom: 60px; /* Add white space at the bottom */
+  padding-bottom: 60px;
+  /* Add white space at the bottom */
 }
 
 /* Top notification */
@@ -151,13 +284,22 @@ header input {
   z-index: 2000;
   padding: 10px 16px;
   border-radius: 10px;
-  box-shadow: 0 8px 26px rgba(2,6,23,0.12);
+  box-shadow: 0 8px 26px rgba(2, 6, 23, 0.12);
   color: white;
   font-weight: 700;
 }
-.top-notification.info { background: linear-gradient(90deg,#6b7280,#111827); }
-.top-notification.success { background: linear-gradient(90deg,#10b981,#059669); }
-.top-notification.error { background: linear-gradient(90deg,#ef4444,#b91c1c); }
+
+.top-notification.info {
+  background: linear-gradient(90deg, #6b7280, #111827);
+}
+
+.top-notification.success {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.top-notification.error {
+  background: linear-gradient(90deg, #ef4444, #b91c1c);
+}
 
 /* Add the following styles to center the filter tab */
 .filters {
@@ -168,174 +310,161 @@ header input {
 }
 
 /* Styles for the redesigned layout */
+/* Styles for the redesigned layout */
 .main-container {
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 0;
+  /* No gap, borders handled by components */
   width: 100%;
-  max-width: 1600px;
-  margin: 12px auto;
-  padding: 0 18px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  background: #fff;
+  min-height: calc(100vh - 80px);
+  /* Adjust based on header height */
 }
 
-.filters {
-  width: 500px;
-  padding: 18px;
-  background: var(--surface);
-  border: 1px solid rgba(47,43,41,0.08);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(47,43,41,0.04);
+/* Left Sidebar: Filters */
+.filters-panel {
+  width: 240px;
+  min-width: 240px;
+  padding: 20px;
+  overflow: hidden;
+  background-color: #fff;
 }
 
-.filters h2 {
-  font-size: 1.05rem;
-  margin-bottom: 12px;
-}
-
-/* Ensure each filtering category occupies a row */
-.filters select,
-.filters label {
+/* Left Column: Filters */
+.filters-panel {
+  width: 260px;
+  min-width: 260px;
+  height: 100%;
+  overflow-y: auto;
+  border-right: 1px solid #e5e5e5;
+  padding: 24px;
+  background: #fff;
   display: block;
-  margin-bottom: 12px;
-  width: 100%;
+  /* Ensure it's visible */
 }
 
-/* Ensure filtering categories start from the top of the left panel */
-.filters {
+/* Middle Column: Restaurant List */
+.restaurant-list-container {
+  flex: 1;
+  min-width: 400px;
+  max-width: 900px;
+  /* Prevent it from getting too wide on huge screens */
+  height: 100%;
+  overflow-y: auto;
+  padding: 24px;
+  background: #fff;
+  border-right: 1px solid #e5e5e5;
+  /* Separator for map */
+}
+
+/* Right Column: Map */
+.map-panel {
+  flex: 1;
+  /* Takes remaining space */
+  height: 100%;
+  position: relative;
+  background: #f8f9fa;
+}
+
+/* Adjustments for list items */
+.restaurant-list {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-start;
+  gap: 24px;
+  padding-bottom: 40px;
 }
 
-.restaurant-list {
-  flex: 1;
-  padding: 6px;
-  /* removed internal scrolling so the whole page scrolls naturally */
-}
-
-/* Right-side map panel that always stays visible on larger screens */
-.map-panel {
-  width: 520px; /* 760px * 0.85 = 646px (15% narrower) */
-  min-width: 520px;
-  max-width: 65vw;
-  background: transparent; /* let map edge blend in */
-  border: none; /* remove map border */
-  border-radius: 12px;
-  padding: 8px;
-  box-shadow: 0 10px 30px rgba(2,6,23,0.05);
-}
-
-/* Map fade helper — use on a wrapper around the map to fade the right edge */
-.map-fade {
-  position: relative;
-}
-.map-fade::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 120px;
-  pointer-events: none;
-  /* fade into the page background using the app background variable */
-  background: linear-gradient(90deg, rgba(248,249,250,0) 0%, rgba(248,249,250,1) 60%);
-  border-top-right-radius: 12px;
-  border-bottom-right-radius: 12px;
-}
-
-@media (max-width: 1024px) {
-  .map-panel { width: 560px; }
-}
-
-@media (max-width: 820px) {
-  .main-container { flex-direction: column; }
-  .map-panel { width: 100%; min-width: auto; order: 2; }
-  .filters { order: 1; width: 100%; }
-}
-
-.restaurant-list::-webkit-scrollbar {
-  width: 10px;
-}
-
-.restaurant-list::-webkit-scrollbar-thumb {
-  background-color: #ccc;
-  border-radius: 5px;
-}
-
-.restaurant-list::-webkit-scrollbar-track {
-  background-color: #f8f8f8;
-}
-
-/* New styles for filter sections, chips, active states, and dividers */
-.filters .filter-section {
-  width: 100%;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(47,43,41,0.06);
-}
-
-.filters .filter-section:last-of-type { border-bottom: none; }
-
-.filter-title {
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: var(--text);
-}
-
-.filter-options { display: flex; flex-wrap: wrap; gap: 8px; }
-
-.chip {
-  background: rgba(15,23,36,0.03);
-  border: 1px solid rgba(47,43,41,0.06);
-  padding: 6px 10px;
-  border-radius: 999px;
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--muted);
-}
-.chip:hover { transform: translateY(-2px); box-shadow: var(--shadow-sm); }
-.chip:focus {
-  outline: none;
-  box-shadow: 0 4px 18px rgba(47,43,41,0.06);
-  transform: translateY(-1px);
-}
-.chip.active {
-  background: var(--accent);
-  color: white;
-  border-color: var(--accent);
-  box-shadow: var(--shadow-sm);
-}
-
-/* reduce padding of filters to match compact Yelp sidebar */
-.filters { padding: 14px; }
-
-@media (max-width: 820px) {
-  .header-bottom input {
-    width: 88%;
+/* Responsive */
+@media (max-width: 1100px) {
+  .filters-panel {
+    display: none;
+    /* Hide filters on smaller screens or make collapsible (user didn't ask for mobile yet) */
   }
+}
+
+@media (max-width: 800px) {
+  .map-panel {
+    display: none;
+    /* Hide map on mobile, standard Yelp behavior */
+  }
+
+  .restaurant-list-container {
+    max-width: 100%;
+    border-right: none;
+  }
+}
+
+.map-container-sticky {
+  position: sticky;
+  top: 0;
+  height: calc(100vh - 80px);
+  /* Full height minus header */
+  width: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1100px) {
+  .map-panel {
+    display: none;
+    /* Hide map on smaller screens like Yelp often does, or move to bottom */
+  }
+
+  .main-container {
+    justify-content: center;
+  }
+
+  .restaurant-list-container {
+    max-width: 800px;
+  }
+}
+
+@media (max-width: 820px) {
   .main-container {
     flex-direction: column;
   }
-  .filters {
+
+  .filters-panel {
     width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .filters-content {
+    position: static;
+  }
+
+  .restaurant-list-container {
+    padding: 10px;
   }
 }
 
 /* Accessibility: stronger focus for interactive elements */
-button:focus, .chip:focus, input:focus {
-  box-shadow: 0 6px 24px rgba(139,111,111,0.06);
+button:focus,
+.chip:focus,
+input:focus {
+  box-shadow: 0 6px 24px rgba(139, 111, 111, 0.06);
 }
 
 /* Respect reduced motion: don't animate shadows too aggressively */
 @media (prefers-reduced-motion: reduce) {
-  .header-bottom input, .chip, .restaurant-card { transition: none !important; box-shadow: none !important; }
+
+  .header-bottom input,
+  .chip,
+  .restaurant-card {
+    transition: none !important;
+    box-shadow: none !important;
+  }
 }
 
 /* Account modal overlay styles */
 .account-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(2,6,23,0.5);
+  background: rgba(2, 6, 23, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -343,6 +472,7 @@ button:focus, .chip:focus, input:focus {
   opacity: 0;
   animation: overlayFade 220ms ease forwards;
 }
+
 .account-modal {
   width: 720px;
   max-width: 92%;
@@ -350,22 +480,40 @@ button:focus, .chip:focus, input:focus {
   padding: 0;
   transform: translateY(12px) scale(0.99);
   opacity: 0;
-  animation: popIn 260ms cubic-bezier(.2,.9,.2,1) forwards;
+  animation: popIn 260ms cubic-bezier(.2, .9, .2, 1) forwards;
 }
 
 @keyframes overlayFade {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes popIn {
-  0% { transform: translateY(12px) scale(0.985); opacity: 0; }
-  60% { transform: translateY(-6px) scale(1.02); opacity: 1; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
+  0% {
+    transform: translateY(12px) scale(0.985);
+    opacity: 0;
+  }
+
+  60% {
+    transform: translateY(-6px) scale(1.02);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 @media (max-width: 820px) {
-  .account-modal { width: 92%; }
+  .account-modal {
+    width: 92%;
+  }
 }
 
 /* --- Modern elevated creative styles --- */
@@ -376,9 +524,10 @@ button:focus, .chip:focus, input:focus {
   left: 0;
   right: 0;
   top: 0;
-  height: 180px; /* reduced so header area is more compact */
-  background: radial-gradient(600px 220px at 10% 10%, rgba(139,92,246,0.06), transparent 20%),
-              radial-gradient(500px 200px at 90% 20%, rgba(3,102,214,0.05), transparent 18%);
+  height: 180px;
+  /* reduced so header area is more compact */
+  background: radial-gradient(600px 220px at 10% 10%, rgba(139, 92, 246, 0.06), transparent 20%),
+    radial-gradient(500px 200px at 90% 20%, rgba(3, 102, 214, 0.05), transparent 18%);
   pointer-events: none;
   z-index: 0;
   filter: blur(24px);
@@ -387,68 +536,161 @@ button:focus, .chip:focus, input:focus {
 
 /* Glass header (non-sticky to allow full page scroll) */
 header {
-  position: relative; /* not sticky so header scrolls with page */
+  position: relative;
+  /* not sticky so header scrolls with page */
   margin: 6px 0 12px 0;
   backdrop-filter: blur(6px) saturate(115%);
-  background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.75));
-  border: 1px solid rgba(27,31,35,0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.75));
+  border: 1px solid rgba(27, 31, 35, 0.06);
   border-radius: 14px;
-  box-shadow: 0 8px 26px rgba(2,6,23,0.05);
+  box-shadow: 0 8px 26px rgba(2, 6, 23, 0.05);
 }
 
 /* Elevated filter panel (glass card) */
-.filters {
+.filters-panel {
   width: 280px;
   padding: 18px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(255,255,255,0.65));
-  border: 1px solid rgba(27,31,35,0.06);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.65));
+  border: 1px solid rgba(27, 31, 35, 0.06);
   border-radius: 14px;
-  box-shadow: 0 12px 34px rgba(2,6,23,0.05);
+  box-shadow: 0 12px 34px rgba(2, 6, 23, 0.05);
+}
+
+/* New styles for filter sections, chips, active states, and dividers */
+.filters-panel .filter-section {
+  width: 100%;
+  padding: 24px 0;
+  /* Increased padding */
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.filters-panel .filter-section:last-of-type {
+  border-bottom: none;
+}
+
+.filter-title {
+  font-weight: 700;
+  margin-bottom: 16px;
+  /* Increased margin */
+  color: #2d2e2f;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  /* Increased gap */
+}
+
+.chip {
+  background: #fff;
+  border: 1px solid #d1d1d1;
+  padding: 8px 16px;
+  /* Larger padding */
+  border-radius: 100px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #5e5e5e;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 /* Subtle chip glow on hover */
-.chip:hover { box-shadow: 0 8px 24px rgba(3,102,214,0.06); transform: translateY(-4px); }
+.chip:hover {
+  background: #f7f7f7;
+  border-color: #b0b0b0;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.chip:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(224, 7, 7, 0.2);
+  /* Red focus ring */
+}
+
+.chip.active {
+  background: #e6f7ff;
+  /* Light blue bg */
+  color: #0073bb;
+  /* Yelp blue */
+  border-color: #0073bb;
+  box-shadow: none;
+}
 
 /* Pagination modern pill */
 .pagination button {
   background: transparent;
-  border: 1px solid rgba(27,31,35,0.06);
+  border: 1px solid rgba(27, 31, 35, 0.06);
   padding: 8px 12px;
   border-radius: 999px;
   color: var(--muted);
   font-weight: 600;
 }
+
 .pagination button.active {
   background: linear-gradient(90deg, var(--accent), #2b8af6);
   color: white;
-  box-shadow: 0 10px 30px rgba(3,102,214,0.12);
+  box-shadow: 0 10px 30px rgba(3, 102, 214, 0.12);
 }
 
 /* make sure content sits above decorative background */
-.App, .main-container { position: relative; z-index: 1; }
+.App,
+.main-container {
+  position: relative;
+  z-index: 1;
+}
 
 /* Highlighted map pin used for hover state */
-.map-pin-icon-wrapper { display: inline-block; }
+.map-pin-icon-wrapper {
+  display: inline-block;
+}
+
 .map-pin-highlight {
   width: 20px;
   height: 20px;
-  background: #ef4444; /* red accent */
+  background: #ef4444;
+  /* red accent */
   border-radius: 50%;
-  box-shadow: 0 6px 18px rgba(239,68,68,0.28);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.28);
   border: 3px solid white;
   transform: translateY(-6px);
 }
 
 /* Slightly scale the highlighted pin when active for emphasis */
-.map-pin-icon-wrapper .map-pin-highlight { transition: transform 160ms ease, box-shadow 160ms ease; }
-.map-pin-icon-wrapper .map-pin-highlight:hover { transform: translateY(-8px) scale(1.06); box-shadow: 0 10px 26px rgba(239,68,68,0.34); }
+.map-pin-icon-wrapper .map-pin-highlight {
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.map-pin-icon-wrapper .map-pin-highlight:hover {
+  transform: translateY(-8px) scale(1.06);
+  box-shadow: 0 10px 26px rgba(239, 68, 68, 0.34);
+}
 
 /* Subtle pulse animation for active hovered pin */
-.map-pin-icon-wrapper .map-pin-highlight { animation: pinPulse 1400ms infinite ease-in-out; }
+.map-pin-icon-wrapper .map-pin-highlight {
+  animation: pinPulse 1400ms infinite ease-in-out;
+}
+
 @keyframes pinPulse {
-  0% { transform: translateY(-6px) scale(1); box-shadow: 0 6px 18px rgba(239,68,68,0.28); }
-  40% { transform: translateY(-8px) scale(1.06); box-shadow: 0 10px 26px rgba(239,68,68,0.34); }
-  100% { transform: translateY(-6px) scale(1); box-shadow: 0 6px 18px rgba(239,68,68,0.28); }
+  0% {
+    transform: translateY(-6px) scale(1);
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.28);
+  }
+
+  40% {
+    transform: translateY(-8px) scale(1.06);
+    box-shadow: 0 10px 26px rgba(239, 68, 68, 0.34);
+  }
+
+  100% {
+    transform: translateY(-6px) scale(1);
+    box-shadow: 0 6px 18px rgba(239, 68, 68, 0.28);
+  }
 }
 
 .map-tiles {

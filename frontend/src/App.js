@@ -8,6 +8,7 @@ import MapView from './components/MapView';
 import Login from './components/Login';
 import Account from './components/Account';
 import { titleCase, formatPostalCode } from './utils/format';
+import { storage } from './utils/storage';
 
 const App = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -15,7 +16,7 @@ const App = () => {
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [hoveredRestaurantId, setHoveredRestaurantId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   const [filters, setFilters] = useState({
     city: [],
     cuisine: [],
@@ -70,12 +71,11 @@ const App = () => {
   };
 
   useEffect(() => {
-    // load logged in user from localStorage
+    // load logged in user from sessionStorage (tab-isolated)
     try {
-      // Load user from real auth storage (if previously logged in)
-      const authUser = localStorage.getItem('auth_user');
+      const authUser = sessionStorage.getItem('auth_user');
       if (authUser) setUser(JSON.parse(authUser));
-    } catch (e) {}
+    } catch (e) { }
   }, []);
 
   useEffect(() => {
@@ -90,10 +90,9 @@ const App = () => {
     notifTimer.current = setTimeout(() => setNotification(null), duration);
   };
 
-  
 
-  useEffect(() => {
-    // Fetch restaurants from backend API
+
+  const fetchRestaurants = () => {
     fetch(`${API_BASE_URL}/restaurants`)
       .then((response) => response.json())
       .then((data) => {
@@ -101,8 +100,8 @@ const App = () => {
         const list = data.restaurants || [];
         setRestaurants(list);
 
-  const uniqueCities = Array.from(new Set(list.map((restaurant) => titleCase(restaurant.city || '')).filter(Boolean)));
-  setCities(uniqueCities);
+        const uniqueCities = Array.from(new Set(list.map((restaurant) => titleCase(restaurant.city || '')).filter(Boolean)));
+        setCities(uniqueCities);
 
         // API uses `cuisine_tags` (array of strings). Fall back to single `category` if needed.
         const uniqueCuisines = Array.from(new Set(list.flatMap((restaurant) => (restaurant.cuisine_tags && restaurant.cuisine_tags.length ? restaurant.cuisine_tags : (restaurant.category ? [restaurant.category] : []))).map((c) => titleCase(c || '')).filter(Boolean)));
@@ -115,7 +114,28 @@ const App = () => {
         setPaymentMethods(uniquePaymentMethods);
       })
       .catch((error) => console.error('Error fetching restaurant data:', error));
+  };
+
+  useEffect(() => {
+    fetchRestaurants();
   }, []);
+
+  const refreshRestaurant = async (id) => {
+    try {
+      const resp = await fetch(`${API_BASE_URL}/restaurants/${id}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        const updated = data.restaurant || data;
+        setRestaurants((prev) => prev.map((r) => (r.id === id ? updated : r)));
+        // Also update selected restaurant if it's the one being refreshed
+        if (selectedRestaurant && selectedRestaurant.id === id) {
+          setSelectedRestaurant(updated);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to refresh restaurant', e);
+    }
+  };
 
   const triggerFilteringAnimation = () => {
     // clear any existing timer
@@ -168,15 +188,15 @@ const App = () => {
     const activePaymentFilters = filters.paymentMethod.map(f => (f || '').toString().toLowerCase());
     const matchesPaymentMethod = filters.paymentMethod.length
       ? (restaurant.payment_methods || []).some((method) => {
-          // Only consider a payment method if it is accepted (treat undefined as accepted)
-          const isAccepted = (method.is_accepted === undefined ? true : method.is_accepted);
-          if (!isAccepted) return false;
-          const methodKey = normalizePaymentKey((method && (method.type || method.name)) || '');
-          return activePaymentFilters.includes(methodKey);
-        })
+        // Only consider a payment method if it is accepted (treat undefined as accepted)
+        const isAccepted = (method.is_accepted === undefined ? true : method.is_accepted);
+        if (!isAccepted) return false;
+        const methodKey = normalizePaymentKey((method && (method.type || method.name)) || '');
+        return activePaymentFilters.includes(methodKey);
+      })
       : true;
 
-    const matchesRating = filters.rating ? (restaurant.ratings?.[0]?.rating ?? 0) >= parseInt(filters.rating) : true;
+    const matchesRating = filters.rating ? (restaurant.average_rating ?? 0) >= parseInt(filters.rating) : true;
     const matchesCashDiscount = filters.cashDiscount ? (restaurant.cash_discounts?.[0]?.percentage ?? 0) > 0 : true;
 
     // Search term matching: check name, address, city, cuisine tags, and postal code (normalized)
@@ -246,8 +266,8 @@ const App = () => {
       if (!returnedUser || !token) return { ok: false, message: 'Invalid server response' };
 
       // Store token and user for authenticated requests
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('auth_user', JSON.stringify(returnedUser));
+      sessionStorage.setItem('auth_token', token);
+      sessionStorage.setItem('auth_user', JSON.stringify(returnedUser));
       setUser(returnedUser);
       setShowLogin(false);
       // welcome message
@@ -290,8 +310,8 @@ const App = () => {
       if (!returnedUser || !token) return { ok: false, message: 'Invalid server response' };
 
       // Store token and user
-      localStorage.setItem('auth_token', token);
-      localStorage.setItem('auth_user', JSON.stringify(returnedUser));
+      sessionStorage.setItem('auth_token', token);
+      sessionStorage.setItem('auth_user', JSON.stringify(returnedUser));
       setUser(returnedUser);
       setShowLogin(false);
       showNotification(`Welcome, ${returnedUser.username || returnedUser.email}`, 'success');
@@ -305,8 +325,8 @@ const App = () => {
   const handleLogout = () => {
     setUser(null);
     // Clear stored auth
-    localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_token');
+    sessionStorage.removeItem('auth_user');
+    sessionStorage.removeItem('auth_token');
     setView('list');
     showNotification('You have been logged out', 'info');
   };
@@ -320,37 +340,54 @@ const App = () => {
       )}
       <header>
         <div className="header-content">
-          <div className="header-top">
+          <div className="header-left">
             <img src={siteLogo} alt="Cash or Card" className="site-logo" />
-            <div className="header-actions">
-              {user ? (
-                <>
-                  <button className="chip" onClick={() => setShowAccount(true)}>My Account</button>
-                  {user.role === 'admin' && (
-                    <button className="chip" onClick={() => setShowAdminPanel(true)}>Admin Panel</button>
-                  )}
-                  <button className="chip" onClick={handleLogout}>Log out</button>
-                </>
-              ) : (
-                <button className="chip" onClick={() => { setLoginMode('signin'); setShowLogin(true); }}>Log In</button>
-              )}
+          </div>
+
+          <div className="header-middle">
+            <div className="search-bar-container">
+              <div className="search-input-wrapper left">
+                <span className="search-label-text">Restaurants</span>
+                <input
+                  type="text"
+                  placeholder="Search restaurants"
+                  value={searchTerm}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="search-input"
+                />
+              </div>
+              <button className="search-submit-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 21L15.0001 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
             </div>
           </div>
 
-          <div className="header-bottom">
-            <input
-              type="text"
-              placeholder="Search restaurants..."
-              value={searchTerm}
-              onChange={(e) => handleSearchChange(e.target.value)}
-            />
+          <div className="header-right">
+            <div className="auth-buttons">
+              {user ? (
+                <>
+                  {user.role === 'admin' && (
+                    <button className="nav-btn outline" onClick={() => setShowAdminPanel(true)}>Admin Panel</button>
+                  )}
+                  <button className="nav-btn outline" onClick={() => setShowAccount(true)}>My Account</button>
+                  <button className="nav-btn primary" onClick={handleLogout}>Log Out</button>
+                </>
+              ) : (
+                <>
+                  <button className="nav-btn outline" onClick={() => { setLoginMode('signin'); setShowLogin(true); }}>Log In</button>
+                  <button className="nav-btn primary" onClick={() => { setLoginMode('signup'); setShowLogin(true); }}>Sign Up</button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
 
-      <>
-        <div className="main-container">
-          <aside className="filters">
+      <div className="main-container">
+        <aside className="filters-panel">
+          <div className="filters-content">
             <h2>Filters</h2>
 
             <div className="filter-section">
@@ -389,7 +426,7 @@ const App = () => {
             <div className="filter-section">
               <div className="filter-title">Minimum Rating</div>
               <div className="filter-options">
-                {[5,4,3,2,1].map((r) => (
+                {[5, 4, 3, 2, 1].map((r) => (
                   <button key={r} type="button" className={`chip ${filters.rating === String(r) ? 'active' : ''}`} onClick={() => handleRatingClick(r)}>
                     {r}+ stars
                   </button>
@@ -408,49 +445,52 @@ const App = () => {
                 Cash Discount
               </label>
             </div>
-
-          </aside>
-          <div style={{ flex: 1, display: 'flex', gap: 20, alignItems: 'flex-start' }}>
-            <main className={`restaurant-list ${isFiltering ? 'filtering' : ''}`} style={{ flex: 1 }}>
-              {currentRestaurants.map((restaurant, idx) => (
-                <RestaurantCard
-                  key={restaurant.id}
-                  restaurant={restaurant}
-                  onClick={() => setSelectedRestaurant(restaurant)}
-                  onMouseEnter={() => setHoveredRestaurantId(restaurant.id)}
-                  onMouseLeave={() => setHoveredRestaurantId(null)}
-                  index={idx}
-                  isFiltering={isFiltering}
-                />
-              ))}
-            </main>
-
-            <aside className="map-panel">
-              <MapView 
-                restaurants={filteredRestaurants} 
-                hoveredRestaurantId={hoveredRestaurantId}
-              />
-            </aside>
           </div>
-        </div>
-        <div className="pagination">
-          {Array.from({ length: totalPages }, (_, index) => (
-            <button
-              key={index + 1}
-              className={currentPage === index + 1 ? 'active' : ''}
-              onClick={() => handlePageChange(index + 1)}
-            >
-              {index + 1}
-            </button>
-          ))}
-        </div>
-      </>
+        </aside>
+
+        <main className={`restaurant-list-container ${isFiltering ? 'filtering' : ''}`}>
+          <div className="restaurant-list">
+            {currentRestaurants.map((restaurant, idx) => (
+              <RestaurantCard
+                key={restaurant.id}
+                restaurant={restaurant}
+                onClick={() => setSelectedRestaurant(restaurant)}
+                onMouseEnter={() => setHoveredRestaurantId(restaurant.id)}
+                onMouseLeave={() => setHoveredRestaurantId(null)}
+                index={idx}
+                isFiltering={isFiltering}
+              />
+            ))}
+          </div>
+          <div className="pagination">
+            {Array.from({ length: totalPages }, (_, index) => (
+              <button
+                key={index + 1}
+                className={currentPage === index + 1 ? 'active' : ''}
+                onClick={() => handlePageChange(index + 1)}
+              >
+                {index + 1}
+              </button>
+            ))}
+          </div>
+        </main>
+
+        <aside className="map-panel">
+          <div className="map-container-sticky">
+            <MapView
+              restaurants={filteredRestaurants}
+              hoveredRestaurantId={hoveredRestaurantId}
+            />
+          </div>
+        </aside>
+      </div>
 
       {selectedRestaurant && (
         <RestaurantDetailsModal
           restaurant={selectedRestaurant}
           onClose={() => setSelectedRestaurant(null)}
           user={user}
+          onRefresh={() => refreshRestaurant(selectedRestaurant.id)}
         />
       )}
 
@@ -458,6 +498,7 @@ const App = () => {
         <AdminPanelModal
           restaurants={restaurants}
           onClose={() => setShowAdminPanel(false)}
+          onRefresh={fetchRestaurants}
         />
       )}
 
