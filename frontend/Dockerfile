@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Delete package-lock.json and do fresh install for Linux compatibility
-RUN npm ci --only=production
+RUN npm install
 
 # Copy source and build
 COPY . .
