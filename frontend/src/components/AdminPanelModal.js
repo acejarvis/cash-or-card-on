@@ -1,7 +1,9 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import './AdminPanelModal.css';
-import RestaurantDetailsModal from './RestaurantDetailsModal';
 import { titleCase, formatPostalCode } from '../utils/format';
+
+// Lazy load RestaurantDetailsModal to break circular dependency
+const RestaurantDetailsModal = lazy(() => import('./RestaurantDetailsModal'));
 
 const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
   const [page, setPage] = useState(1);
@@ -697,11 +699,13 @@ const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
           </div>
         )}
         {selectedRestaurant && (
-          <RestaurantDetailsModal
-            restaurant={selectedRestaurant}
-            onClose={() => setSelectedRestaurant(null)}
-            user={{ role: 'admin' }}
-          />
+          <Suspense fallback={<div>Loading...</div>}>
+            <RestaurantDetailsModal
+              restaurant={selectedRestaurant}
+              onClose={() => setSelectedRestaurant(null)}
+              user={{ role: 'admin' }}
+            />
+          </Suspense>
         )}
       </div>
     </div>

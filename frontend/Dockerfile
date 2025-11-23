@@ -3,17 +3,19 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-# Copy package files and install
+# Copy package files
 COPY package*.json ./
-# Use npm ci if package-lock.json exists, otherwise fall back to npm install
-RUN if [ -f package-lock.json ]; then \
-			npm ci --only=production; \
-		else \
-			npm install --production --no-audit --no-fund; \
-		fi
+
+# Delete package-lock.json and do fresh install for Linux compatibility
+RUN npm install
 
 # Copy source and build
 COPY . .
+
+# Accept API URL as build argument
+ARG REACT_APP_API_BASE
+ENV REACT_APP_API_BASE=$REACT_APP_API_BASE
+
 RUN npm run build
 
 # Production image

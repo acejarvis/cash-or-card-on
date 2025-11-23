@@ -7,7 +7,11 @@ data:
   POSTGRES_USER: postgres
   POSTGRES_HOST: postgres
   POSTGRES_PORT: "5432"
+  PGDATA: /var/lib/postgresql/data/pgdata
   NODE_ENV: production
   PORT: "3001"
+  # CORS Configuration
+  CORS_ORIGIN: "http://165.227.35.55:30000"
   # Frontend Config
-  REACT_APP_API_URL: "http://backend:3001" # This might need to be the public URL in production
+  # This must be the PUBLIC IP of your Droplet because the browser (client) calls this URL directly
+  REACT_APP_API_URL: "http://165.227.35.55:30001/api"

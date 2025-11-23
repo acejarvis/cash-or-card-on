@@ -44,6 +44,7 @@ spec:
   selector:
     app: backend
   ports:
-    - port: 80
+    - port: 3001
       targetPort: 3001
-  type: ClusterIP
+      nodePort: 30001 # Expose on a static port for external access
+  type: NodePort
