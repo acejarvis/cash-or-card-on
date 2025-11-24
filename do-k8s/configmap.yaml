@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cash-or-card-config
+data:
+  POSTGRES_DB: cash_or_card
+  POSTGRES_USER: postgres
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  PGDATA: /var/lib/postgresql/data/pgdata
+  NODE_ENV: production
+  PORT: "3001"
+  # CORS Configuration
+  CORS_ORIGIN: "http://165.227.35.55:30000"
+  # Frontend Config
+  # This must be the PUBLIC IP of your Droplet because the browser (client) calls this URL directly
+  REACT_APP_API_URL: "http://165.227.35.55:30001/api"
+  # DigitalOcean Monitoring
+  DO_API_TOKEN: "dop_v1_d8a919ce862685ad4ffcb5435c5256ea48068876882513aab0262bb12c769ca7"
+  DO_DROPLET_ID: "531882139"
