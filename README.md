@@ -21,26 +21,43 @@ Cash-or-Card-ON is a crowdsourcing platform that helps diners in Ontario find re
 
 ## ⚡ Quick Start
 
-### For Frontend Developers
+### Full Stack Setup (Recommended)
 
-Get the backend API and database running in one command:
+Get the entire application running in one command:
 
 ```bash
-# Start all services (database + backend API)
+# Start all services (database + backend + frontend)
 docker-compose up -d
 
 # Verify everything is running
 curl http://localhost:3001/health
 curl http://localhost:3001/api/restaurants
+
+# Open the application
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:3001
 ```
 
 **Test Credentials:**
 - Admin: `admin@cash-or-card.com` / `admin123`
 - User: `user@cash-or-card.com` / `user123`
 
-**API Base URL:** `http://localhost:3001/api`
+**Service URLs:**
+- **Frontend:** `http://localhost:3000`
+- **Backend API:** `http://localhost:3001/api`
+- **pgAdmin:** `http://localhost:5050` (optional)
 
 👉 See [GETTING_STARTED.md](GETTING_STARTED.md) for detailed setup instructions.
+
+### For Frontend Developers
+
+```bash
+# Start backend services only
+docker-compose up -d postgres backend
+
+# Run frontend in development mode
+cd frontend && npm install && npm start
+```
 
 ### For Backend Developers
 
@@ -55,7 +72,7 @@ cd backend && npm install
 npm run dev
 ```
 
-� See [backend/README.md](backend/README.md) for API documentation.
+  See [backend/README.md](backend/README.md) for API documentation.
 
 ---
 
@@ -97,7 +114,8 @@ npm run dev
 ```
 ┌─────────────────┐
 │  React Frontend │ (Port 3000)
-│  (In Progress)  │
+│   + Material-UI │
+│   + Leaflet Map │
 └────────┬────────┘
          │
          │ HTTP/REST
@@ -123,10 +141,12 @@ npm run dev
 - PostgreSQL 15 with connection pooling
 - Docker multi-stage builds
 
-**Frontend:** (In Development)
-- React.js
-- React Router
-- Axios/Fetch API
+**Frontend:**
+- React 18 with Hooks
+- Material-UI (MUI) components
+- Leaflet & React Leaflet for maps
+- Axios for API communication
+- Nginx for production serving
 
 **Database:**
 - PostgreSQL 15-alpine
@@ -136,6 +156,7 @@ npm run dev
 
 **DevOps:**
 - Docker & Docker Compose
+- Multi-stage builds for frontend (Node + Nginx)
 - pgAdmin for database management
 - Automated migrations and seeding
 
@@ -254,6 +275,7 @@ docker-compose up -d
 # Or start individually
 docker-compose up -d postgres  # Database only
 docker-compose up -d backend   # Backend API
+docker-compose up -d frontend  # React frontend
 docker-compose up -d pgadmin   # Database GUI (optional)
 ```
 
@@ -268,14 +290,22 @@ curl http://localhost:3001/health
 # Test API
 curl http://localhost:3001/api/restaurants
 
+# Access frontend
+# Open browser: http://localhost:3000
+
 # View logs
 docker-compose logs -f backend
+docker-compose logs -f frontend
 ```
 
 ### Common Commands
 ```bash
 # Restart services
 docker-compose restart
+
+# Restart specific service
+docker-compose restart frontend
+docker-compose restart backend
 
 # Stop services (keep data)
 docker-compose stop
@@ -288,7 +318,12 @@ docker-compose down -v && docker-compose up -d
 
 # Rebuild after code changes
 docker-compose build backend
-docker-compose up -d backend
+docker-compose build frontend
+docker-compose up -d
+
+# View real-time logs
+docker-compose logs -f
+docker-compose logs -f frontend backend
 ```
 
 ---
@@ -342,11 +377,27 @@ cash-or-card-on/
 │   ├── package.json
 │   └── README.md             # Backend documentation
 ├── frontend/
-│   └── cash-or-card/         # React application (in progress)
+│   ├── src/
+│   │   ├── components/       # React components
+│   │   │   ├── Account.js    # User profile
+│   │   │   ├── AdminPanelModal.js  # Admin management
+│   │   │   ├── Login.js      # Auth UI
+│   │   │   ├── MapView.js    # Leaflet map
+│   │   │   ├── RestaurantCard.js   # List item
+│   │   │   └── RestaurantDetailsModal.js  # Details view
+│   │   ├── utils/
+│   │   │   └── format.js     # Formatting utilities
+│   │   ├── files/            # Static assets
+│   │   ├── App.js            # Main app component
+│   │   └── index.js          # Entry point
+│   ├── public/
+│   │   └── index.html
+│   ├── Dockerfile            # Multi-stage build (Node + Nginx)
+│   └── package.json
 ├── docs/
 │   ├── Project_Proposal.md   # Project proposal
 │   └── Development_Plan.md   # Development timeline
-├── docker-compose.yml        # Service orchestration
+├── docker-compose.yml        # Service orchestration (all 4 services)
 ├── GETTING_STARTED.md        # Quick start guide
 ├── .env                      # Environment variables
 └── README.md                 # This file
@@ -356,12 +407,12 @@ cash-or-card-on/
 
 ## 📈 Project Status
 
-### ✅ Completed (Weeks 1-2)
+### ✅ Completed (Weeks 1-4)
 
 **Database & Infrastructure**
 - [x] PostgreSQL schema with 7 tables
 - [x] Database migrations and seeding
-- [x] Docker Compose setup
+- [x] Docker Compose setup with 4 services
 - [x] pgAdmin integration
 
 **Backend API**
@@ -378,6 +429,27 @@ cash-or-card-on/
 - [x] Docker multi-stage build
 - [x] Health check endpoints
 
+**Frontend Application**
+- [x] React 18 application setup
+- [x] Material-UI component integration
+- [x] Authentication UI (Login/Register)
+- [x] User profile and account management
+- [x] Restaurant list view with cards
+- [x] Restaurant details modal
+- [x] Advanced filtering (city, cuisine, payment methods, ratings)
+- [x] Search functionality
+- [x] Pagination system
+- [x] Interactive Leaflet map integration
+- [x] Payment method submission and voting UI
+- [x] Cash discount submission and voting UI
+- [x] Admin panel for restaurant management
+- [x] Restaurant creation, editing, and deletion
+- [x] Verification system UI
+- [x] Responsive design
+- [x] Real-time status indicators (open/closed)
+- [x] Toast notifications
+- [x] Docker multi-stage build (Node + Nginx)
+
 **Documentation**
 - [x] Backend API documentation
 - [x] Getting started guide
@@ -385,34 +457,36 @@ cash-or-card-on/
 - [x] Project proposal
 - [x] Development plan
 
-### 🔄 In Progress (Weeks 3-4)
+### 🔄 In Progress (Week 5)
 
-**Frontend Development**
-- [ ] React application setup
-- [ ] Component library
-- [ ] Authentication UI
-- [ ] Restaurant search and filtering
-- [ ] Restaurant details page
-- [ ] Payment method submission
-- [ ] Voting interface
-- [ ] Admin panel
+**Testing & Quality Assurance**
+- [ ] Unit tests for backend
+- [ ] Integration tests
+- [ ] Frontend component tests
+- [ ] E2E tests
 
-### ⏳ Planned (Weeks 5-8)
+**Polish & Optimization**
+- [ ] Performance optimization
+- [ ] Accessibility improvements
+- [ ] Mobile responsiveness enhancements
+- [ ] SEO optimization
+
+### ⏳ Planned (Weeks 6-8)
 
 **Advanced Features**
-- [ ] Advanced search filters
-- [ ] User profile management
+- [ ] User contribution history
 - [ ] Analytics dashboard
 - [ ] Email notifications
 - [ ] Data export functionality
+- [ ] Advanced search filters (distance, ratings)
+- [ ] Restaurant photo uploads
 
-**Testing & Deployment**
-- [ ] Unit tests
-- [ ] Integration tests
-- [ ] E2E tests
-- [ ] Kubernetes deployment
+**Deployment & DevOps**
+- [ ] Production environment setup
 - [ ] CI/CD pipeline
+- [ ] Kubernetes deployment
 - [ ] Monitoring and logging
+- [ ] Backup and recovery procedures
 
 ---
 
