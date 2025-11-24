@@ -34,4 +34,8 @@ module.exports = {
 
   // Logging
   LOG_LEVEL: process.env.LOG_LEVEL || 'info',
+
+  // DigitalOcean Monitoring
+  DO_API_TOKEN: process.env.DO_API_TOKEN,
+  DO_DROPLET_ID: process.env.DO_DROPLET_ID,
 };
