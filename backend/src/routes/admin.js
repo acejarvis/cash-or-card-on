@@ -4,6 +4,7 @@ const { authenticate, authorize } = require('../middleware/auth');
 const restaurantDAO = require('../dao/restaurantDAO');
 const paymentMethodDAO = require('../dao/paymentMethodDAO');
 const cashDiscountDAO = require('../dao/cashDiscountDAO');
+const monitoringController = require('../controllers/monitoringController');
 
 // Middleware to ensure admin access
 router.use(authenticate, authorize('admin'));
@@ -90,5 +91,8 @@ router.post('/reject/:type/:id', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+
+// Get server metrics
+router.get('/monitoring', monitoringController.getMetrics);
 
 module.exports = router;

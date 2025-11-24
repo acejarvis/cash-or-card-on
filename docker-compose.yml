@@ -47,6 +47,9 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
       RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+      # DigitalOcean Monitoring
+      DO_API_TOKEN: "dop_v1_d8a919ce862685ad4ffcb5435c5256ea48068876882513aab0262bb12c769ca7"
+      DO_DROPLET_ID: "531882139"
     ports:
       - "${BACKEND_PORT:-3001}:3001"
     networks:
@@ -85,6 +88,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - REACT_APP_API_BASE=http://localhost:3001/api
     container_name: cash-or-card-frontend
     restart: unless-stopped
     ports:

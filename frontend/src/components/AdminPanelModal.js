@@ -1,11 +1,13 @@
 import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import './AdminPanelModal.css';
 import { titleCase, formatPostalCode } from '../utils/format';
+import ResourceMonitoringModal from './ResourceMonitoringModal';
 
 // Lazy load RestaurantDetailsModal to break circular dependency
 const RestaurantDetailsModal = lazy(() => import('./RestaurantDetailsModal'));
 
 const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
+  console.log('[AdminPanelModal] Render');
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const perPage = 10;
@@ -63,6 +65,7 @@ const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [pendingItems, setPendingItems] = useState({ restaurants: [], paymentMethods: [], cashDiscounts: [] });
   const [activeTab, setActiveTab] = useState('restaurants'); // 'restaurants' or 'pending'
+  const [showMonitoring, setShowMonitoring] = useState(false);
 
   const canonicalPayments = [
     { key: 'amex', label: 'Amex' },
@@ -349,366 +352,409 @@ const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
   // current page). This prevents the modal from shrinking on the last page.
   const needsFixedHeight = pageItems.length < perPage;
 
+  console.log('[AdminPanelModal] Render. showMonitoring:', showMonitoring);
+
   return (
-    <div className="admin-overlay" onClick={onClose}>
-      {toast && <div className="admin-toast">{toast}</div>}
-      <div className={`admin-modal ${needsFixedHeight ? 'fixed-height' : ''}`} onClick={(e) => e.stopPropagation()}>
-        <div className="admin-header">
-          <h2>Restaurant Management</h2>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <div className="admin-tabs" style={{ display: 'flex', gap: '12px' }}>
-              <button className={`button ${activeTab === 'restaurants' ? 'primary' : ''}`} onClick={() => setActiveTab('restaurants')}>Restaurants</button>
-              <button className={`button ${activeTab === 'pending' ? 'primary' : ''}`} onClick={() => setActiveTab('pending')}>Pending Approvals</button>
+    <>
+      <div className="admin-overlay" onClick={onClose}>
+        {toast && <div className="admin-toast">{toast}</div>}
+        <div className={`admin-modal ${needsFixedHeight ? 'fixed-height' : ''}`} onClick={(e) => e.stopPropagation()}>
+          <div className="admin-header">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h2 style={{ margin: 0 }}>Restaurant Management</h2>
+              <button
+                onClick={onClose}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '18px',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  lineHeight: 1
+                }}
+              >
+                &times;
+              </button>
             </div>
-            {activeTab === 'restaurants' && (
-              <div className="admin-actions">
-                <button className="button" onClick={() => { setNewOperatingHours(getDefaultOperatingHours()); setShowCreateModal(true); }}>Create Restaurant</button>
-                <input
-                  className="admin-search"
-                  placeholder="Search by id, name or city..."
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                />
-                <button className="button small" onClick={onClose}>Close</button>
-              </div>
-            )}
-            {activeTab === 'pending' && (
-              <div className="admin-actions">
-                <button className="button small" onClick={fetchPending}>Refresh</button>
-                <button className="button small" onClick={onClose}>Close</button>
-              </div>
-            )}
-          </div>
-        </div>
 
-        <div className={`admin-table-wrap ${needsFixedHeight ? 'fixed' : ''}`} style={{ display: activeTab === 'restaurants' ? 'block' : 'none' }}>
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>City</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pageItems.map((r) => {
-                const rawId = r.id || r.restaurant_id || r._id || '';
-                const idStr = String(rawId);
-                // If the id is all-digits, pad to 3 for nicer display, otherwise show as-is
-                const displayId = /^\d+$/.test(idStr) ? idStr.padStart(3, '0') : idStr;
-                const key = rawId || r.name || Math.random();
-                return (
-                  <tr key={key}>
-                    <td>{displayId || '—'}</td>
-                    <td>{titleCase(r.name)}</td>
-                    <td>{titleCase(r.city)}</td>
-                    <td>
-                      {r.status === 'active' && <span className="status-active">✓ Active</span>}
-                      {r.status === 'pending' && <span className="status-pending">⚠️ Pending</span>}
-                      {r.status === 'inactive' && <span className="status-inactive">❌ Inactive</span>}
-                    </td>
-                    <td>
-                      <button className="button small" onClick={() => openEditModal(r)}>Edit</button>
-                      <button className="button small" onClick={() => setSelectedRestaurant(r)}>View</button>
-                      <button className="button small" onClick={async () => {
-                        // Delete restaurant via backend API and remove locally (no page reload)
-                        const idToDelete = rawId;
-                        if (!idToDelete) { showToast('Unable to determine id for delete'); return; }
-                        const API_BASE_URL = process.env.REACT_APP_API_BASE || 'http://localhost:3001/api';
-                        const token = sessionStorage.getItem('auth_token');
-                        try {
-                          const resp = await fetch(`${API_BASE_URL}/restaurants/${encodeURIComponent(idToDelete)}`, {
-                            method: 'DELETE',
-                            headers: {
-                              'Content-Type': 'application/json',
-                              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-                            },
-                          });
-                          let body = null;
-                          try { body = await resp.json(); } catch (e) { /* ignore json parse errors */ }
-                          if (!resp.ok) {
-                            const msg = body && body.message ? body.message : `Delete failed (${resp.status})`;
-                            showToast(msg);
-                            return;
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', gap: '16px' }}>
+              <div className="admin-tabs" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                <button
+                  className={`button ${activeTab === 'restaurants' ? 'primary' : ''}`}
+                  onClick={() => setActiveTab('restaurants')}
+                >
+                  Restaurants
+                </button>
+
+                <button
+                  className="button"
+                  onClick={() => { setNewOperatingHours(getDefaultOperatingHours()); setShowCreateModal(true); }}
+                >
+                  Create Restaurant
+                </button>
+
+                <button
+                  className={`button ${activeTab === 'pending' ? 'primary' : ''}`}
+                  onClick={() => setActiveTab('pending')}
+                >
+                  Pending Approvals
+                </button>
+
+                <button
+                  className="button"
+                  onClick={() => setShowMonitoring(true)}
+                >
+                  System Monitoring
+                </button>
+              </div>
+
+              <div className="admin-actions">
+                {activeTab === 'restaurants' && (
+                  <input
+                    className="admin-search"
+                    placeholder="Search by id, name or city..."
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+                  />
+                )}
+                {activeTab === 'pending' && (
+                  <button className="button small" onClick={fetchPending}>Refresh</button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className={`admin-table-wrap ${needsFixedHeight ? 'fixed' : ''}`} style={{ display: activeTab === 'restaurants' ? 'block' : 'none' }}>
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>City</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pageItems.map((r) => {
+                  const rawId = r.id || r.restaurant_id || r._id || '';
+                  const idStr = String(rawId);
+                  // If the id is all-digits, pad to 3 for nicer display, otherwise show as-is
+                  const displayId = /^\d+$/.test(idStr) ? idStr.padStart(3, '0') : idStr;
+                  const key = rawId || r.name || Math.random();
+                  return (
+                    <tr key={key}>
+                      <td>{displayId || '—'}</td>
+                      <td>{titleCase(r.name)}</td>
+                      <td>{titleCase(r.city)}</td>
+                      <td>
+                        <button className="button small" onClick={() => openEditModal(r)}>Edit</button>
+                        <button className="button small" onClick={() => setSelectedRestaurant(r)}>View</button>
+                        <button className="button small" onClick={async () => {
+                          // Delete restaurant via backend API and remove locally (no page reload)
+                          const idToDelete = rawId;
+                          if (!idToDelete) { showToast('Unable to determine id for delete'); return; }
+                          const API_BASE_URL = process.env.REACT_APP_API_BASE || 'http://localhost:3001/api';
+                          const token = sessionStorage.getItem('auth_token');
+                          try {
+                            const resp = await fetch(`${API_BASE_URL}/restaurants/${encodeURIComponent(idToDelete)}`, {
+                              method: 'DELETE',
+                              headers: {
+                                'Content-Type': 'application/json',
+                                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                              },
+                            });
+                            let body = null;
+                            try { body = await resp.json(); } catch (e) { /* ignore json parse errors */ }
+                            if (!resp.ok) {
+                              const msg = body && body.message ? body.message : `Delete failed (${resp.status})`;
+                              showToast(msg);
+                              return;
+                            }
+                            // remove from local items so UI reflects deletion immediately
+                            setItems((prev) => prev.filter((it) => {
+                              const ids = [it.id, it.restaurant_id, it._id].filter(Boolean).map(String);
+                              return !ids.includes(String(idToDelete));
+                            }));
+                            showToast('Restaurant deleted');
+                            if (onRefresh) onRefresh();
+                          } catch (err) {
+                            showToast('Network error during delete');
                           }
-                          // remove from local items so UI reflects deletion immediately
-                          setItems((prev) => prev.filter((it) => {
-                            const ids = [it.id, it.restaurant_id, it._id].filter(Boolean).map(String);
-                            return !ids.includes(String(idToDelete));
-                          }));
-                          showToast('Restaurant deleted');
-                          if (onRefresh) onRefresh();
-                        } catch (err) {
-                          showToast('Network error during delete');
-                        }
-                      }}>Delete</button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="admin-footer" style={{ display: activeTab === 'restaurants' ? 'flex' : 'none' }}>
-          <div>Showing {start + 1}-{end} of {total} restaurants</div>
-          <div className="pagination">
-            <button disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>&lt; Previous</button>
-            {Array.from({ length: totalPages }).slice(0, 7).map((_, i) => (
-              <button key={i} className={page === i + 1 ? 'active' : ''} onClick={() => setPage(i + 1)}>{i + 1}</button>
-            ))}
-            <button disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next &gt;</button>
+                        }}>Delete</button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
-        {/* Pending reviews placeholder */}
-        {/* Pending reviews placeholder */}
-        {activeTab === 'pending' && (
-          <div className="pending-reviews" style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
-            {/* Pending Restaurants - Hidden per user request */}
-            {/* {pendingItems.restaurants && pendingItems.restaurants.length > 0 && (
-              <div style={{ marginBottom: '24px' }}>
-                <h3>Pending Restaurants</h3>
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>City</th>
-                      <th>Submitted By</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingItems.restaurants.map(r => (
-                      <tr key={r.id}>
-                        <td>{titleCase(r.name || '')}</td>
-                        <td>{titleCase(r.city || '')}</td>
-                        <td>{r.submitted_by_username || 'Unknown'}</td>
-                        <td>
-                          <button className="button small primary" onClick={() => handleApprove('restaurant', r.id)}>Approve</button>
-                          <button className="button small" onClick={() => handleReject('restaurant', r.id)}>Reject</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )} */}
 
-
-            {/* Pending Payment Methods */}
-            {pendingItems.paymentMethods && pendingItems.paymentMethods.length > 0 && (
-              <div style={{ marginBottom: '24px' }}>
-                <h3>Pending Payment Methods</h3>
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Restaurant</th>
-                      <th>Type</th>
-                      <th>Accepted?</th>
-                      <th>Submitted By</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingItems.paymentMethods.map(pm => (
-                      <tr key={pm.id}>
-                        <td>{titleCase(pm.restaurant_name || '')}</td>
-                        <td>{titleCase(pm.payment_type || '')}</td>
-                        <td>{pm.is_accepted ? 'Yes' : 'No'}</td>
-                        <td>{pm.submitted_by_username || 'Unknown'}</td>
-                        <td>
-                          <button className="button small primary" onClick={() => handleApprove('payment-method', pm.id)}>Approve</button>
-                          <button className="button small" onClick={() => handleReject('payment-method', pm.id)}>Reject</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Pending Cash Discounts */}
-            {pendingItems.cashDiscounts && pendingItems.cashDiscounts.length > 0 && (
-              <div style={{ marginBottom: '24px' }}>
-                <h3>Pending Cash Discounts</h3>
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Restaurant</th>
-                      <th>Discount</th>
-                      <th>Submitted By</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingItems.cashDiscounts.map(cd => (
-                      <tr key={cd.id}>
-                        <td>{titleCase(cd.restaurant_name || '')}</td>
-                        <td>{cd.discount_percentage}%</td>
-                        <td>{cd.submitted_by_username || 'Unknown'}</td>
-                        <td>
-                          <button className="button small primary" onClick={() => handleApprove('cash-discount', cd.id)}>Approve</button>
-                          <button className="button small" onClick={() => handleReject('cash-discount', cd.id)}>Reject</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {(!pendingItems.paymentMethods?.length && !pendingItems.cashDiscounts?.length) && (
-              <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-                No pending items to review.
-              </div>
-            )}
-          </div>
-        )}
-        {/* Edit modal (admin) */}
-        {editingRestaurant && (
-          <div className="edit-overlay" onClick={() => setEditingRestaurant(null)}>
-            <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
-              <h3>Edit: {titleCase(editingRestaurant.name)}</h3>
-              <div style={{ marginTop: 8 }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Payment Methods</div>
-                {editPayments.map((p, idx) => (
-                  <div key={p.key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                    <div style={{ flex: 1 }}>{p.label}</div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      <button className={`button small ${p.isAccepted ? 'active' : ''}`} onClick={() => toggleEditPayment(idx)}>
-                        {p.isAccepted ? 'Accepted' : 'Not accepted'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ marginTop: 12 }}>
-                <div style={{ fontWeight: 700, marginBottom: 6 }}>Cash Discount (%)</div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <input type="number" min="0" max="100" className="input small" value={editDiscountValue} onChange={(e) => setEditDiscountValue(e.target.value)} />
-                </div>
-              </div>
-
-              <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button className="button small" onClick={() => setEditingRestaurant(null)}>Close</button>
-                <button className="button primary" onClick={saveAndSubmitEdits} disabled={isSavingEdit}>Save & Submit</button>
-              </div>
+          <div className="admin-footer" style={{ display: activeTab === 'restaurants' ? 'flex' : 'none' }}>
+            <div>Showing {start + 1}-{end} of {total} restaurants</div>
+            <div className="pagination">
+              <button disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>&lt; Previous</button>
+              {Array.from({ length: totalPages }).slice(0, 7).map((_, i) => (
+                <button key={i} className={page === i + 1 ? 'active' : ''} onClick={() => setPage(i + 1)}>{i + 1}</button>
+              ))}
+              <button disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Next &gt;</button>
             </div>
           </div>
-        )}
-        {/* Create modal */}
-        {showCreateModal && (
-          <div className="edit-overlay" onClick={() => setShowCreateModal(false)}>
-            <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
-              <h3>Create Restaurant</h3>
-              <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
-                <input className="input" placeholder="Name*" value={newRestaurant.name} onChange={(e) => setNewRestaurant({ ...newRestaurant, name: e.target.value })} />
-                <input className="input" placeholder="Address*" value={newRestaurant.address} onChange={(e) => setNewRestaurant({ ...newRestaurant, address: e.target.value })} />
-                <input className="input" placeholder="City*" value={newRestaurant.city} onChange={(e) => setNewRestaurant({ ...newRestaurant, city: e.target.value })} />
-                <select className="input" value={newRestaurant.category} onChange={(e) => setNewRestaurant({ ...newRestaurant, category: e.target.value })}>
-                  <option value="Chinese">Chinese</option>
-                  <option value="Korean">Korean</option>
-                  <option value="Japanese">Japanese</option>
-                  <option value="Vietnamese">Vietnamese</option>
-                  <option value="Thai">Thai</option>
-                  <option value="Italian">Italian</option>
-                  <option value="French">French</option>
-                  <option value="Indian">Indian</option>
-                  <option value="Mexican">Mexican</option>
-                  <option value="American">American</option>
-                  <option value="Mediterranean">Mediterranean</option>
-                  <option value="Canadian">Canadian</option>
-                  <option value="Fusion">Fusion</option>
-                  <option value="Other">Other</option>
-                </select>
-                <input className="input" placeholder="Province" value={newRestaurant.province} onChange={(e) => setNewRestaurant({ ...newRestaurant, province: e.target.value })} />
-                <input className="input" placeholder="Postal Code" value={newRestaurant.postal_code} onChange={(e) => setNewRestaurant({ ...newRestaurant, postal_code: e.target.value })} />
-                <input className="input" placeholder="Phone" value={newRestaurant.phone} onChange={(e) => setNewRestaurant({ ...newRestaurant, phone: e.target.value })} />
-                <input className="input" placeholder="Cuisine tags (comma separated)" value={newRestaurant.cuisine_tags} onChange={(e) => setNewRestaurant({ ...newRestaurant, cuisine_tags: e.target.value })} />
-                <input className="input" placeholder="Website URL" value={newRestaurant.website_url} onChange={(e) => setNewRestaurant({ ...newRestaurant, website_url: e.target.value })} />
-                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8 }}>
-                  <div style={{ fontWeight: 700, marginBottom: 6 }}>Operating hours</div>
-                  {dayKeys.map((d) => (
-                    <div key={d} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
-                      <div style={{ width: 48 }}>{dayLabels[d]}</div>
-                      <input type="time" className="input" value={newOperatingHours[d].open} onChange={(e) => setNewOperatingHours((s) => ({ ...s, [d]: { ...s[d], open: e.target.value } }))} disabled={newOperatingHours[d].closed} />
-                      <span style={{ opacity: 0.6 }}>—</span>
-                      <input type="time" className="input" value={newOperatingHours[d].close} onChange={(e) => setNewOperatingHours((s) => ({ ...s, [d]: { ...s[d], close: e.target.value } }))} disabled={newOperatingHours[d].closed} />
-                      <label style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
-                        <input type="checkbox" checked={newOperatingHours[d].closed} onChange={(e) => setNewOperatingHours((s) => ({ ...s, [d]: { ...s[d], closed: e.target.checked, open: e.target.checked ? '' : s[d].open, close: e.target.checked ? '' : s[d].close } }))} /> Closed
-                      </label>
+          {/* Pending reviews placeholder */}
+          {/* Pending reviews placeholder */}
+          {activeTab === 'pending' && (
+            <div className="pending-reviews" style={{ flex: 1, overflowY: 'auto', padding: '12px' }}>
+              {/* Pending Restaurants - Hidden per user request */}
+              {/* {pendingItems.restaurants && pendingItems.restaurants.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                  <h3>Pending Restaurants</h3>
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>City</th>
+                        <th>Submitted By</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingItems.restaurants.map(r => (
+                        <tr key={r.id}>
+                          <td>{titleCase(r.name || '')}</td>
+                          <td>{titleCase(r.city || '')}</td>
+                          <td>{r.submitted_by_username || 'Unknown'}</td>
+                          <td>
+                            <button className="button small primary" onClick={() => handleApprove('restaurant', r.id)}>Approve</button>
+                            <button className="button small" onClick={() => handleReject('restaurant', r.id)}>Reject</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )} */}
+
+
+              {/* Pending Payment Methods */}
+              {pendingItems.paymentMethods && pendingItems.paymentMethods.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                  <h3>Pending Payment Methods</h3>
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Restaurant</th>
+                        <th>Type</th>
+                        <th>Accepted?</th>
+                        <th>Submitted By</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingItems.paymentMethods.map(pm => (
+                        <tr key={pm.id}>
+                          <td>{titleCase(pm.restaurant_name || '')}</td>
+                          <td>{titleCase(pm.payment_type || '')}</td>
+                          <td>{pm.is_accepted ? 'Yes' : 'No'}</td>
+                          <td>{pm.submitted_by_username || 'Unknown'}</td>
+                          <td>
+                            <button className="button small primary" onClick={() => handleApprove('payment-method', pm.id)}>Approve</button>
+                            <button className="button small" onClick={() => handleReject('payment-method', pm.id)}>Reject</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Pending Cash Discounts */}
+              {pendingItems.cashDiscounts && pendingItems.cashDiscounts.length > 0 && (
+                <div style={{ marginBottom: '24px' }}>
+                  <h3>Pending Cash Discounts</h3>
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Restaurant</th>
+                        <th>Discount</th>
+                        <th>Submitted By</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingItems.cashDiscounts.map(cd => (
+                        <tr key={cd.id}>
+                          <td>{titleCase(cd.restaurant_name || '')}</td>
+                          <td>{cd.discount_percentage}%</td>
+                          <td>{cd.submitted_by_username || 'Unknown'}</td>
+                          <td>
+                            <button className="button small primary" onClick={() => handleApprove('cash-discount', cd.id)}>Approve</button>
+                            <button className="button small" onClick={() => handleReject('cash-discount', cd.id)}>Reject</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {(!pendingItems.paymentMethods?.length && !pendingItems.cashDiscounts?.length) && (
+                <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  No pending items to review.
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Edit modal (admin) */}
+          {editingRestaurant && (
+            <div className="edit-overlay" onClick={() => setEditingRestaurant(null)}>
+              <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+                <h3>Edit: {titleCase(editingRestaurant.name)}</h3>
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>Payment Methods</div>
+                  {editPayments.map((p, idx) => (
+                    <div key={p.key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                      <div style={{ flex: 1 }}>{p.label}</div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <button className={`button small ${p.isAccepted ? 'active' : ''}`} onClick={() => toggleEditPayment(idx)}>
+                          {p.isAccepted ? 'Accepted' : 'Not accepted'}
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
-              <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                <button className="button small" onClick={() => setShowCreateModal(false)}>Cancel</button>
-                <button className="button primary" onClick={async () => {
-                  // basic validation
-                  if (!newRestaurant.name || !newRestaurant.address || !newRestaurant.city || !newRestaurant.category) { showToast('Please fill required fields'); return; }
-                  const token = sessionStorage.getItem('auth_token');
-                  // prepare payload
-                  const payload = { ...newRestaurant };
-                  // convert cuisine_tags string to array
-                  if (typeof payload.cuisine_tags === 'string') payload.cuisine_tags = payload.cuisine_tags.split(',').map(s => s.trim()).filter(Boolean);
-                  // pass operating_hours as-is (backend expects JSON or null)
-                  try {
-                    // attach operating_hours object: only include days that are not closed
-                    const oh = {};
-                    Object.keys(newOperatingHours).forEach((k) => {
-                      const v = newOperatingHours[k];
-                      if (!v.closed && v.open && v.close) oh[k] = { open: v.open, close: v.close };
-                    });
-                    payload.operating_hours = Object.keys(oh).length ? oh : null;
 
-                    const resp = await fetch(`${API_BASE_URL}/restaurants`, {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-                      body: JSON.stringify(payload),
-                    });
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 700, marginBottom: 6 }}>Cash Discount (%)</div>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input type="number" min="0" max="100" className="input small" value={editDiscountValue} onChange={(e) => setEditDiscountValue(e.target.value)} />
+                  </div>
+                </div>
 
-                    // Try JSON first, fallback to text for error reporting
-                    let body = null;
-                    try { body = await resp.json(); } catch (e) {
-                      try { body = await resp.text(); } catch (e2) { body = null; }
-                    }
-
-                    if (!resp.ok) {
-                      const msg = (body && typeof body === 'object' && body.message) ? body.message : (typeof body === 'string' && body.length ? body : `Failed to create restaurant (${resp.status})`);
-                      console.error('Create restaurant failed:', resp.status, body);
-                      showToast(msg);
-                      return;
-                    }
-
-                    const created = body && body.restaurant ? body.restaurant : (body && body.id ? body : null);
-                    if (created) {
-                      setItems((prev) => [created, ...prev]);
-                      showToast('Restaurant created');
-                      setShowCreateModal(false);
-                      setNewRestaurant({ name: '', address: '', city: '', province: 'Ontario', postal_code: '', phone: '', category: '', cuisine_tags: '', website_url: '' });
-                      // reset operating hours to defaults (09:00-22:00 every day)
-                      setNewOperatingHours(() => getDefaultOperatingHours());
-                    }
-                  } catch (e) { showToast('Network error'); }
-                }}>Create</button>
+                <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                  <button className="button small" onClick={() => setEditingRestaurant(null)}>Close</button>
+                  <button className="button primary" onClick={saveAndSubmitEdits} disabled={isSavingEdit}>Save & Submit</button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-        {selectedRestaurant && (
-          <Suspense fallback={<div>Loading...</div>}>
-            <RestaurantDetailsModal
-              restaurant={selectedRestaurant}
-              onClose={() => setSelectedRestaurant(null)}
-              user={{ role: 'admin' }}
-            />
-          </Suspense>
-        )}
+          )}
+          {/* Create modal */}
+          {showCreateModal && (
+            <div className="edit-overlay" onClick={() => setShowCreateModal(false)}>
+              <div className="edit-modal" onClick={(e) => e.stopPropagation()}>
+                <h3>Create Restaurant</h3>
+                <div style={{ display: 'grid', gap: 8, marginTop: 8 }}>
+                  <input className="input" placeholder="Name*" value={newRestaurant.name} onChange={(e) => setNewRestaurant({ ...newRestaurant, name: e.target.value })} />
+                  <input className="input" placeholder="Address*" value={newRestaurant.address} onChange={(e) => setNewRestaurant({ ...newRestaurant, address: e.target.value })} />
+                  <input className="input" placeholder="City*" value={newRestaurant.city} onChange={(e) => setNewRestaurant({ ...newRestaurant, city: e.target.value })} />
+                  <select className="input" value={newRestaurant.category} onChange={(e) => setNewRestaurant({ ...newRestaurant, category: e.target.value })}>
+                    <option value="Chinese">Chinese</option>
+                    <option value="Korean">Korean</option>
+                    <option value="Japanese">Japanese</option>
+                    <option value="Vietnamese">Vietnamese</option>
+                    <option value="Thai">Thai</option>
+                    <option value="Italian">Italian</option>
+                    <option value="French">French</option>
+                    <option value="Indian">Indian</option>
+                    <option value="Mexican">Mexican</option>
+                    <option value="American">American</option>
+                    <option value="Mediterranean">Mediterranean</option>
+                    <option value="Canadian">Canadian</option>
+                    <option value="Fusion">Fusion</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  <input className="input" placeholder="Province" value={newRestaurant.province} onChange={(e) => setNewRestaurant({ ...newRestaurant, province: e.target.value })} />
+                  <input className="input" placeholder="Postal Code" value={newRestaurant.postal_code} onChange={(e) => setNewRestaurant({ ...newRestaurant, postal_code: e.target.value })} />
+                  <input className="input" placeholder="Phone" value={newRestaurant.phone} onChange={(e) => setNewRestaurant({ ...newRestaurant, phone: e.target.value })} />
+                  <input className="input" placeholder="Cuisine tags (comma separated)" value={newRestaurant.cuisine_tags} onChange={(e) => setNewRestaurant({ ...newRestaurant, cuisine_tags: e.target.value })} />
+                  <input className="input" placeholder="Website URL" value={newRestaurant.website_url} onChange={(e) => setNewRestaurant({ ...newRestaurant, website_url: e.target.value })} />
+                  <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8 }}>
+                    <div style={{ fontWeight: 700, marginBottom: 6 }}>Operating hours</div>
+                    {dayKeys.map((d) => (
+                      <div key={d} style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
+                        <div style={{ width: 48 }}>{dayLabels[d]}</div>
+                        <input type="time" className="input" value={newOperatingHours[d].open} onChange={(e) => setNewOperatingHours((s) => ({ ...s, [d]: { ...s[d], open: e.target.value } }))} disabled={newOperatingHours[d].closed} />
+                        <span style={{ opacity: 0.6 }}>—</span>
+                        <input type="time" className="input" value={newOperatingHours[d].close} onChange={(e) => setNewOperatingHours((s) => ({ ...s, [d]: { ...s[d], close: e.target.value } }))} disabled={newOperatingHours[d].closed} />
+                        <label style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
+                          <input type="checkbox" checked={newOperatingHours[d].closed} onChange={(e) => setNewOperatingHours((s) => ({ ...s, [d]: { ...s[d], closed: e.target.checked, open: e.target.checked ? '' : s[d].open, close: e.target.checked ? '' : s[d].close } }))} /> Closed
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ marginTop: 12, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                  <button className="button small" onClick={() => setShowCreateModal(false)}>Cancel</button>
+                  <button className="button primary" onClick={async () => {
+                    // basic validation
+                    if (!newRestaurant.name || !newRestaurant.address || !newRestaurant.city || !newRestaurant.category) { showToast('Please fill required fields'); return; }
+                    const token = sessionStorage.getItem('auth_token');
+                    // prepare payload
+                    const payload = { ...newRestaurant };
+                    // convert cuisine_tags string to array
+                    if (typeof payload.cuisine_tags === 'string') payload.cuisine_tags = payload.cuisine_tags.split(',').map(s => s.trim()).filter(Boolean);
+                    // pass operating_hours as-is (backend expects JSON or null)
+                    try {
+                      // attach operating_hours object: only include days that are not closed
+                      const oh = {};
+                      Object.keys(newOperatingHours).forEach((k) => {
+                        const v = newOperatingHours[k];
+                        if (!v.closed && v.open && v.close) oh[k] = { open: v.open, close: v.close };
+                      });
+                      payload.operating_hours = Object.keys(oh).length ? oh : null;
+
+                      const resp = await fetch(`${API_BASE_URL}/restaurants`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                        body: JSON.stringify(payload),
+                      });
+
+                      // Try JSON first, fallback to text for error reporting
+                      let body = null;
+                      try { body = await resp.json(); } catch (e) {
+                        try { body = await resp.text(); } catch (e2) { body = null; }
+                      }
+
+                      if (!resp.ok) {
+                        const msg = (body && typeof body === 'object' && body.message) ? body.message : (typeof body === 'string' && body.length ? body : `Failed to create restaurant (${resp.status})`);
+                        console.error('Create restaurant failed:', resp.status, body);
+                        showToast(msg);
+                        return;
+                      }
+
+                      const created = body && body.restaurant ? body.restaurant : (body && body.id ? body : null);
+                      if (created) {
+                        setItems((prev) => [created, ...prev]);
+                        showToast('Restaurant created');
+                        setShowCreateModal(false);
+                        setNewRestaurant({ name: '', address: '', city: '', province: 'Ontario', postal_code: '', phone: '', category: '', cuisine_tags: '', website_url: '' });
+                        // reset operating hours to defaults (09:00-22:00 every day)
+                        setNewOperatingHours(() => getDefaultOperatingHours());
+                      }
+                    } catch (e) { showToast('Network error'); }
+                  }}>Create</button>
+                </div>
+              </div>
+            </div>
+          )}
+          {selectedRestaurant && (
+            <Suspense fallback={<div>Loading...</div>}>
+              <RestaurantDetailsModal
+                restaurant={selectedRestaurant}
+                onClose={() => setSelectedRestaurant(null)}
+                user={{ role: 'admin' }}
+              />
+            </Suspense>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* Resource Monitoring Modal - Rendered outside admin-modal to prevent nesting issues */}
+      <ResourceMonitoringModal isOpen={showMonitoring} onClose={() => setShowMonitoring(false)} />
+    </>
   );
 };
 
