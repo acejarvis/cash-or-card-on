@@ -60,6 +60,14 @@ jobs:
           echo "NODE_IP=$NODE_IP" >> $GITHUB_OUTPUT
           echo "Detected Node IP: $NODE_IP"
 
+      - name: Validate required secrets
+        run: |
+          # Check if POSTGRES_PASSWORD is set
+          if [ -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
+            echo "::error::POSTGRES_PASSWORD secret is not set. Please add it to your GitHub repository secrets."
+            exit 1
+          fi
+
       - name: Update deployment files
         run: |
           TAG=$(echo $GITHUB_SHA | head -c7)
@@ -74,10 +82,10 @@ jobs:
           sed -i 's|<CORS_ORIGIN>|http://'${NODE_IP}':30000|' $GITHUB_WORKSPACE/do-k8s/configmap.yaml
           sed -i 's|<REACT_APP_API_URL>|http://'${NODE_IP}':30001|' $GITHUB_WORKSPACE/do-k8s/configmap.yaml
           
-          # Set secrets
-          sed -i 's|<POSTGRES_PASSWORD>|'${{ secrets.POSTGRES_PASSWORD }}'|' $GITHUB_WORKSPACE/do-k8s/secrets.yaml
-          sed -i 's|<JWT_SECRET>|'change_me_to_a_long_random_string'|' $GITHUB_WORKSPACE/do-k8s/secrets.yaml
-          sed -i 's|<DO_API_TOKEN>|'${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}'|' $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+          # Set secrets - using environment variables to handle special characters
+          sed -i "s|<POSTGRES_PASSWORD>|${{ secrets.POSTGRES_PASSWORD }}|" $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+          sed -i "s|<JWT_SECRET>|${{ secrets.JWT_SECRET }}|" $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+          sed -i "s|<DO_API_TOKEN>|${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}|" $GITHUB_WORKSPACE/do-k8s/secrets.yaml
 
       - name: Deploy to DigitalOcean Kubernetes
         run: |
