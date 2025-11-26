@@ -40,15 +40,44 @@ jobs:
           docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:$(echo $GITHUB_SHA | head -c7) ./backend/database
           docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:$(echo $GITHUB_SHA | head -c7)
 
+      - name: Save DigitalOcean kubeconfig with short-lived credentials
+        run: doctl kubernetes cluster kubeconfig save 6875f660-de8c-427a-a59f-34ac3407d4a3 --expiry-seconds 600
+
+      - name: Get Kubernetes Node Public IP
+        id: get-node-ip
+        run: |
+          # Get the external IP of the first node in the cluster using kubectl
+          NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
+          
+          # Fallback: If ExternalIP is not available, try to get it from DigitalOcean API
+          if [ -z "$NODE_IP" ]; then
+            # Get the node name (droplet name)
+            NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
+            # Get droplet IP using doctl
+            NODE_IP=$(doctl compute droplet list --format Name,PublicIPv4 --no-header | grep "$NODE_NAME" | awk '{print $2}')
+          fi
+          
+          echo "NODE_IP=$NODE_IP" >> $GITHUB_OUTPUT
+          echo "Detected Node IP: $NODE_IP"
+
       - name: Update deployment files
         run: |
           TAG=$(echo $GITHUB_SHA | head -c7)
+          NODE_IP=${{ steps.get-node-ip.outputs.NODE_IP }}
+          
+          # Set image tags
           sed -i 's|<BACKEND_IMAGE>|registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-backend:'${TAG}'|' $GITHUB_WORKSPACE/do-k8s/backend.yaml
           sed -i 's|<FRONTEND_IMAGE>|registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-frontend:'${TAG}'|' $GITHUB_WORKSPACE/do-k8s/frontend.yaml
           sed -i 's|<DB_IMAGE>|registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:'${TAG}'|' $GITHUB_WORKSPACE/do-k8s/postgres.yaml
-
-      - name: Save DigitalOcean kubeconfig with short-lived credentials
-        run: doctl kubernetes cluster kubeconfig save --expiry-seconds 600 do-tor1-k8s-cash-or-card
+          
+          # Auto-configure CORS and API URL using node IP
+          sed -i 's|<CORS_ORIGIN>|http://'${NODE_IP}':30000|' $GITHUB_WORKSPACE/do-k8s/configmap.yaml
+          sed -i 's|<REACT_APP_API_URL>|http://'${NODE_IP}':30001|' $GITHUB_WORKSPACE/do-k8s/configmap.yaml
+          
+          # Set secrets
+          sed -i 's|<POSTGRES_PASSWORD>|'${{ secrets.POSTGRES_PASSWORD }}'|' $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+          sed -i 's|<JWT_SECRET>|'change_me_to_a_long_random_string'|' $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+          sed -i 's|<DO_API_TOKEN>|'${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}'|' $GITHUB_WORKSPACE/do-k8s/secrets.yaml
 
       - name: Deploy to DigitalOcean Kubernetes
         run: |
