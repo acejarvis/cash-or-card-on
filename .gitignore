@@ -1,5 +1,6 @@
 # Environment variables
 .env
+.env.deploy
 
 # Docker volumes and data
 postgres_data/

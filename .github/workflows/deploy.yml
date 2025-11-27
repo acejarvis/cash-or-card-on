@@ -11,7 +11,7 @@ on:
       - '.github/workflows/**'
 
 jobs:
-  build-and-deploy:
+  build-and-deploy:  
     runs-on: ubuntu-latest
     steps:
       - name: Checkout master
@@ -24,21 +24,6 @@ jobs:
 
       - name: Log in to DigitalOcean Container Registry with short-lived credentials
         run: doctl registry login --expiry-seconds 1200
-
-      - name: Build and Push Backend Image
-        run: |
-          docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-backend:$(echo $GITHUB_SHA | head -c7) ./backend
-          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-backend:$(echo $GITHUB_SHA | head -c7)
-
-      - name: Build and Push Frontend Image
-        run: |
-          docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-frontend:$(echo $GITHUB_SHA | head -c7) ./frontend
-          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-frontend:$(echo $GITHUB_SHA | head -c7)
-
-      - name: Build and Push DB Image
-        run: |
-          docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:$(echo $GITHUB_SHA | head -c7) ./backend/database
-          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:$(echo $GITHUB_SHA | head -c7)
 
       - name: Save DigitalOcean kubeconfig with short-lived credentials
         run: doctl kubernetes cluster kubeconfig save 6875f660-de8c-427a-a59f-34ac3407d4a3 --expiry-seconds 600
@@ -59,6 +44,26 @@ jobs:
           
           echo "NODE_IP=$NODE_IP" >> $GITHUB_OUTPUT
           echo "Detected Node IP: $NODE_IP"
+
+      - name: Build and Push Backend Image
+        run: |
+          docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-backend:$(echo $GITHUB_SHA | head -c7) ./backend
+          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-backend:$(echo $GITHUB_SHA | head -c7)
+
+      - name: Build and Push Frontend Image
+        run: |
+          NODE_IP=${{ steps.get-node-ip.outputs.NODE_IP }}
+          # Pass the API URL as a build argument so React can call the correct backend
+          docker build \
+            --build-arg REACT_APP_API_BASE="http://${NODE_IP}:30001/api" \
+            -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-frontend:$(echo $GITHUB_SHA | head -c7) \
+            ./frontend
+          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-frontend:$(echo $GITHUB_SHA | head -c7)
+
+      - name: Build and Push DB Image
+        run: |
+          docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:$(echo $GITHUB_SHA | head -c7) ./backend/database
+          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:$(echo $GITHUB_SHA | head -c7)
 
       - name: Validate required secrets
         run: |
@@ -92,11 +97,9 @@ jobs:
           kubectl apply -f $GITHUB_WORKSPACE/do-k8s/configmap.yaml
           kubectl apply -f $GITHUB_WORKSPACE/do-k8s/secrets.yaml
           kubectl apply -f $GITHUB_WORKSPACE/do-k8s/postgres.yaml
-          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/backend.yaml
-          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/frontend.yaml
-
-      - name: Verify deployment
-        run: |
-          kubectl rollout status deployment/backend
-          kubectl rollout status deployment/frontend
           kubectl rollout status deployment/postgres
+          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/backend.yaml
+          kubectl rollout status deployment/backend
+          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/frontend.yaml
+          kubectl rollout status deployment/frontend
+          
