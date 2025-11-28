@@ -1,6 +1,4 @@
--- Migration: 002_create_users_table.sql
 -- Description: Create users table for authentication and authorization
--- Created: 2024-10-20
 
 CREATE TYPE user_role AS ENUM ('guest', 'registered', 'admin');
 

@@ -1,7 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './RestaurantCard.css';
-import restaurantImg from '../files/restaurant.jpg';
+import defaultRestaurantImg from '../files/restaurant.jpg';
 import { titleCase, formatPostalCode } from '../utils/format';
+
+// Get the API base URL from environment or default
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3001/api';
+
+// Helper function to get restaurant image URL
+// Uses relative URL so images are served from the same origin (via nginx proxy)
+const getRestaurantImageUrl = (restaurant) => {
+  if (restaurant.image_url) {
+    return `/uploads/restaurants/${restaurant.image_url}`;
+  }
+  return null;
+};
 
 const getRestaurantStatus = (operatingHours) => {
   // operatingHours can be an array (old mock) or an object (API) keyed by weekday
@@ -118,6 +130,18 @@ const RestaurantCard = ({ restaurant, onClick, onMouseEnter, onMouseLeave, isFil
     ratingNumeric = avg.toFixed(1);
   }
 
+  // Get restaurant image URL with fallback
+  const imageUrl = getRestaurantImageUrl(restaurant);
+  const [imgSrc, setImgSrc] = useState(imageUrl || defaultRestaurantImg);
+  const [imgError, setImgError] = useState(false);
+
+  const handleImageError = () => {
+    if (!imgError) {
+      setImgError(true);
+      setImgSrc(defaultRestaurantImg);
+    }
+  };
+
   return (
     <div
       className={`restaurant-card horizontal animate-in`}
@@ -128,9 +152,10 @@ const RestaurantCard = ({ restaurant, onClick, onMouseEnter, onMouseLeave, isFil
     >
       <div className="card-image-container">
         <img
-          src={restaurantImg}
+          src={imgSrc}
           alt={`${restaurant.name || 'Restaurant'} logo`}
           className="restaurant-image"
+          onError={handleImageError}
         />
       </div>
 

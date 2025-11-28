@@ -1,6 +1,4 @@
--- Migration: 010_allow_payment_method_proposals.sql
 -- Description: Replace global unique constraint with partial constraints to allow proposals
--- Created: 2024-11-22
 
 -- Drop the existing unique constraint
 ALTER TABLE payment_methods DROP CONSTRAINT IF EXISTS unique_restaurant_payment;

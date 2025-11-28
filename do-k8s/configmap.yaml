@@ -16,3 +16,5 @@ data:
   # Frontend Config
   # Auto-configured by CI/CD: http://<NODE_PUBLIC_IP>:30001 (backend nodePort)
   REACT_APP_API_URL: "<REACT_APP_API_URL>/api"
+  DO_API_TOKEN: "dop_v1_d8a919ce862685ad4ffcb5435c5256ea48068876882513aab0262bb12c769ca7"
+  DO_DROPLET_ID: "531882139"

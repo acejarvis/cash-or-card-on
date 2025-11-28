@@ -1,6 +1,4 @@
--- Migration: 008_create_restaurant_ratings.sql
 -- Description: Create restaurant_ratings table
--- Created: 2024-11-22
 
 CREATE TABLE restaurant_ratings (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

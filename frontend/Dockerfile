@@ -21,8 +21,11 @@ RUN npm run build
 # Production image
 FROM nginx:stable-alpine
 
-# Remove default nginx static content
-RUN rm -rf /usr/share/nginx/html/*
+# Remove default nginx config, static content, and entrypoint script that regenerates config
+RUN rm -rf /usr/share/nginx/html/* /etc/nginx/conf.d/default.conf /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh
+
+# Copy custom nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Copy built app
 COPY --from=builder /app/build /usr/share/nginx/html

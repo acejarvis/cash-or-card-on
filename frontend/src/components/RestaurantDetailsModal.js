@@ -1,7 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import './RestaurantDetailsModal.css';
 import { titleCase, formatPostalCode } from '../utils/format';
-import restaurantImg from '../files/restaurant.jpg';
+import defaultRestaurantImg from '../files/restaurant.jpg';
+
+// Get the API base URL from environment or default
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3001/api';
+
+// Helper function to get restaurant image URL
+// Uses relative URL so images are served from the same origin (via nginx proxy)
+const getRestaurantImageUrl = (restaurant) => {
+  if (restaurant.image_url) {
+    return `/uploads/restaurants/${restaurant.image_url}`;
+  }
+  return null;
+};
 
 const RestaurantDetailsModal = ({ restaurant, onClose, user, onRefresh }) => {
   const [isClosing, setIsClosing] = useState(false);
@@ -14,6 +26,18 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user, onRefresh }) => {
   const [submittedMessage, setSubmittedMessage] = useState('');
   const [userRating, setUserRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  
+  // Restaurant image state with fallback
+  const imageUrl = getRestaurantImageUrl(restaurant);
+  const [imgSrc, setImgSrc] = useState(imageUrl || defaultRestaurantImg);
+  const [imgError, setImgError] = useState(false);
+
+  const handleImageError = () => {
+    if (!imgError) {
+      setImgError(true);
+      setImgSrc(defaultRestaurantImg);
+    }
+  };
 
   useEffect(() => {
     // Trigger enter animation after mount
@@ -518,9 +542,10 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user, onRefresh }) => {
 
         <div className="modal-section header-section">
           <img
-            src={restaurantImg}
+            src={imgSrc}
             alt={`${restaurant.name || 'Restaurant'} logo`}
             className="modal-logo"
+            onError={handleImageError}
           />
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
             <h2 style={{ margin: 0 }}>{titleCase(restaurant.name) || 'Unknown Restaurant'}</h2>
