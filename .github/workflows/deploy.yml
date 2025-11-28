@@ -28,6 +28,11 @@ jobs:
       - name: Save DigitalOcean kubeconfig with short-lived credentials
         run: doctl kubernetes cluster kubeconfig save 6875f660-de8c-427a-a59f-34ac3407d4a3 --expiry-seconds 600
 
+      - name: Integrate registry with Kubernetes cluster
+        run: |
+          CLUSTER_NAME=$(doctl kubernetes cluster list --format Name --no-header | head -1)
+          doctl kubernetes cluster registry add "$CLUSTER_NAME" || true
+
       - name: Get Kubernetes Node Public IP
         id: get-node-ip
         run: |
@@ -96,10 +101,32 @@ jobs:
         run: |
           kubectl apply -f $GITHUB_WORKSPACE/do-k8s/configmap.yaml
           kubectl apply -f $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/restaurant-images-pvc.yaml
           kubectl apply -f $GITHUB_WORKSPACE/do-k8s/postgres.yaml
-          kubectl rollout status deployment/postgres
+          kubectl rollout status deployment/postgres --timeout=120s
           kubectl apply -f $GITHUB_WORKSPACE/do-k8s/backend.yaml
-          kubectl rollout status deployment/backend
+          kubectl rollout status deployment/backend --timeout=120s
+
+      - name: Seed restaurant images
+        run: |
+          IMAGES_DIR="$GITHUB_WORKSPACE/backend/uploads/restaurants"
+          if [ -d "$IMAGES_DIR" ] && [ "$(ls -A "$IMAGES_DIR" 2>/dev/null | grep -v README)" ]; then
+            # Wait a moment for pod to be fully ready, then get the running pod name
+            sleep 2
+            BACKEND_POD=$(kubectl get pods -l app=backend --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+            if [ -n "$BACKEND_POD" ]; then
+              echo "Copying images to backend pod: $BACKEND_POD"
+              kubectl cp "$IMAGES_DIR/." "$BACKEND_POD:/app/uploads/restaurants/"
+              echo "Restaurant images seeded"
+            else
+              echo "No backend pod found, skipping image seeding"
+            fi
+          else
+            echo "No restaurant images found in $IMAGES_DIR, skipping"
+          fi
+
+      - name: Deploy frontend
+        run: |
           kubectl apply -f $GITHUB_WORKSPACE/do-k8s/frontend.yaml
-          kubectl rollout status deployment/frontend
+          kubectl rollout status deployment/frontend --timeout=120s
           
