@@ -1,6 +1,4 @@
--- Migration: 003_create_restaurants_table.sql
 -- Description: Create restaurants table with verification status
--- Created: 2024-10-20
 
 CREATE TYPE restaurant_category AS ENUM (
     'Chinese', 'Korean', 'Japanese', 'Vietnamese', 'Thai', 
@@ -21,6 +19,7 @@ CREATE TABLE restaurants (
     category restaurant_category NOT NULL,
     cuisine_tags TEXT[], -- Additional cuisine descriptors
     website_url TEXT,
+    image_url TEXT, -- Filename of restaurant image stored in /uploads/restaurants/
     
     -- Operating hours (stored as JSON)
     -- Format: {"monday": {"open": "11:00", "close": "22:00"}, ...}

@@ -23,6 +23,9 @@ spec:
                 name: cash-or-card-config
             - secretRef:
                 name: cash-or-card-secrets
+          volumeMounts:
+            - name: restaurant-images
+              mountPath: /app/uploads/restaurants
           readinessProbe:
             httpGet:
               path: /health
@@ -35,6 +38,10 @@ spec:
               port: 3001
             initialDelaySeconds: 20
             periodSeconds: 10
+      volumes:
+        - name: restaurant-images
+          persistentVolumeClaim:
+            claimName: restaurant-images-pvc
 ---
 apiVersion: v1
 kind: Service

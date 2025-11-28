@@ -1,6 +1,4 @@
--- Migration: 004_create_payment_methods_table.sql
 -- Description: Create payment methods table and voting system
--- Created: 2024-10-20
 
 CREATE TYPE payment_type AS ENUM ('cash', 'debit', 'visa', 'mastercard', 'amex', 'discover', 'other');
 

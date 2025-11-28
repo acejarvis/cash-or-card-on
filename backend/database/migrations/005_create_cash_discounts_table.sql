@@ -1,6 +1,4 @@
--- Migration: 005_create_cash_discounts_table.sql
 -- Description: Create cash discounts table and voting system
--- Created: 2024-10-20
 
 CREATE TABLE cash_discounts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

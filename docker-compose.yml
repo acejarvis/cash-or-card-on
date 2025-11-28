@@ -3,7 +3,9 @@ version: '3.8'
 services:
   # PostgreSQL Database
   postgres:
-    image: postgres:15-alpine
+    build:
+      context: ./backend/database
+      dockerfile: Dockerfile
     container_name: cash-or-card-postgres
     restart: unless-stopped
     environment:
@@ -52,6 +54,9 @@ services:
       DO_DROPLET_ID: "531882139"
     ports:
       - "${BACKEND_PORT:-3001}:3001"
+    volumes:
+      - restaurant_images:/app/uploads/restaurants
+      - ./backend/uploads/restaurants:/app/uploads/restaurants:ro
     networks:
       - cash-or-card-network
     depends_on:
@@ -63,25 +68,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  # pgAdmin for database management (optional, for development)
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: cash-or-card-pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@cash-or-card.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
-      PGADMIN_LISTEN_PORT: 80
-    ports:
-      - "${PGADMIN_PORT:-5050}:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    networks:
-      - cash-or-card-network
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   # Frontend (React) served by nginx
   frontend:
@@ -103,7 +89,7 @@ services:
 volumes:
   postgres_data:
     driver: local
-  pgadmin_data:
+  restaurant_images:
     driver: local
 
 networks:

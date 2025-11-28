@@ -198,8 +198,9 @@ const MapView = ({ restaurants = [], hoveredRestaurantId = null }) => {
           // prefer cleaned address for query
           const queryStr = cleaned || raw;
           const q = encodeURIComponent(queryStr);
-          const url = `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1`;
-          const resp = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+          // Use backend proxy to avoid CORS issues
+          const url = `/api/geocode/search?q=${q}`;
+          const resp = await fetch(url);
           if (!resp.ok) throw new Error('geocode failed');
           const body = await resp.json();
           if (body && body.length) {

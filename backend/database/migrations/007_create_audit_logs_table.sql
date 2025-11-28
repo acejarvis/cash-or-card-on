@@ -1,6 +1,4 @@
--- Migration: 006_create_audit_logs_table.sql
 -- Description: Create audit logs for tracking all modifications
--- Created: 2024-10-20
 
 CREATE TYPE audit_action AS ENUM (
     'CREATE', 'UPDATE', 'DELETE', 

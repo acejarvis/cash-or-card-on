@@ -12,22 +12,23 @@ INSERT INTO users (id, email, username, password_hash, role, is_active, email_ve
     ('550e8400-e29b-41d4-a716-446655440003', 'contributor@cash-or-card.com', 'contributor', '$2b$10$DAJo0QSXOwYFsu5hjvvoB.6z/q5zAMijmtZ6Av.ssCTqe45i7Kc5.', 'registered', true, true);
 
 -- Create test restaurants (based on real examples from proposal)
-INSERT INTO restaurants (id, name, address, city, province, postal_code, phone, category, cuisine_tags, operating_hours, is_verified, verified_by, verified_at, data_source) VALUES
+INSERT INTO restaurants (id, name, address, city, province, postal_code, phone, category, cuisine_tags, operating_hours, is_verified, verified_by, verified_at, data_source, image_url) VALUES
     (
         '650e8400-e29b-41d4-a716-446655440001',
-        'Ichiban Japanese Restaurant',
-        '1230 Eglinton Ave E',
-        'Scarborough',
+        'Ichiban Asian All You Can Eat',
+        '7 - 4261 Highway E Unit C 8',
+        'Markham',
         'Ontario',
-        'M3C 1J9',
-        '416-444-1230',
+        'L3R 9W6',
+        '905-305-8823',
         'Japanese',
         ARRAY['Sushi', 'Japanese'],
-        '{"monday": {"open": "11:00", "close": "22:00"}, "tuesday": {"open": "11:00", "close": "22:00"}, "wednesday": {"open": "11:00", "close": "22:00"}, "thursday": {"open": "11:00", "close": "22:00"}, "friday": {"open": "11:00", "close": "23:00"}, "saturday": {"open": "11:00", "close": "23:00"}, "sunday": {"open": "12:00", "close": "22:00"}}'::jsonb,
+        '{"monday": {"open": "11:00", "close": "22:00"}, "tuesday": {"open": "11:00", "close": "22:00"}, "wednesday": {"open": "11:00", "close": "22:00"}, "thursday": {"open": "11:00", "close": "22:00"}, "friday": {"open": "11:00", "close": "22:30"}, "saturday": {"open": "11:00", "close": "22:30"}, "sunday": {"open": "12:00", "close": "22:00"}}'::jsonb,
         true,
         '550e8400-e29b-41d4-a716-446655440001',
         CURRENT_TIMESTAMP,
-        'user_submission'
+        'user_submission',
+        '650e8400-e29b-41d4-a716-446655440001.jpg'
     ),
     (
         '650e8400-e29b-41d4-a716-446655440002',
@@ -43,7 +44,8 @@ INSERT INTO restaurants (id, name, address, city, province, postal_code, phone, 
         true,
         '550e8400-e29b-41d4-a716-446655440001',
         CURRENT_TIMESTAMP,
-        'user_submission'
+        'user_submission',
+        '650e8400-e29b-41d4-a716-446655440002.jpg'
     ),
     (
         '650e8400-e29b-41d4-a716-446655440003',
@@ -59,7 +61,8 @@ INSERT INTO restaurants (id, name, address, city, province, postal_code, phone, 
         true,
         '550e8400-e29b-41d4-a716-446655440001',
         CURRENT_TIMESTAMP,
-        'user_submission'
+        'user_submission',
+        '650e8400-e29b-41d4-a716-446655440003.jpg'
     ),
     (
         '650e8400-e29b-41d4-a716-446655440004',
@@ -75,7 +78,8 @@ INSERT INTO restaurants (id, name, address, city, province, postal_code, phone, 
         true,
         '550e8400-e29b-41d4-a716-446655440001',
         CURRENT_TIMESTAMP,
-        'user_submission'
+        'user_submission',
+        '650e8400-e29b-41d4-a716-446655440004.jpg'
     ),
     (
         '650e8400-e29b-41d4-a716-446655440005',
@@ -91,7 +95,8 @@ INSERT INTO restaurants (id, name, address, city, province, postal_code, phone, 
         true,
         '550e8400-e29b-41d4-a716-446655440001',
         CURRENT_TIMESTAMP,
-        'user_submission'
+        'user_submission',
+        '650e8400-e29b-41d4-a716-446655440005.jpg'
     ),
     (
         '650e8400-e29b-41d4-a716-446655440006',
@@ -107,7 +112,8 @@ INSERT INTO restaurants (id, name, address, city, province, postal_code, phone, 
         true,
         '550e8400-e29b-41d4-a716-446655440001',
         CURRENT_TIMESTAMP,
-        'user_submission'
+        'user_submission',
+        '650e8400-e29b-41d4-a716-446655440006.jpg'
     );
 
 -- Insert payment methods
@@ -172,5 +178,5 @@ UPDATE cash_discounts SET confidence_score = calculate_confidence_score(upvotes,
 
 -- Insert some audit log entries
 INSERT INTO audit_logs (entity_type, entity_id, action, performed_by, new_values, ip_address, notes) VALUES
-    ('restaurant', '650e8400-e29b-41d4-a716-446655440001', 'CREATE', '550e8400-e29b-41d4-a716-446655440002', '{"name": "Ichiban Japanese Restaurant", "city": "Scarborough"}'::jsonb, '192.168.1.100', 'Initial restaurant submission'),
+    ('restaurant', '650e8400-e29b-41d4-a716-446655440001', 'CREATE', '550e8400-e29b-41d4-a716-446655440002', '{"name": "Ichiban Asian All You Can Eat", "city": "Markham"}'::jsonb, '192.168.1.100', 'Initial restaurant submission'),
     ('restaurant', '650e8400-e29b-41d4-a716-446655440001', 'VERIFY', '550e8400-e29b-41d4-a716-446655440001', '{"is_verified": true}'::jsonb, '192.168.1.50', 'Admin verified restaurant data');

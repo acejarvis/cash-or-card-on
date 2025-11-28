@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 const config = require('./config/env');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
@@ -15,6 +16,7 @@ const cashDiscountRoutes = require('./routes/cashDiscounts');
 const ratingsRoutes = require('./routes/ratings');
 const adminRoutes = require('./routes/admin');
 const monitoringRoutes = require('./routes/monitoring');
+const geocodeRoutes = require('./routes/geocode');
 
 // Create Express app
 const app = express();
@@ -79,6 +81,20 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Serve static files for restaurant images
+// Images are stored in /uploads/restaurants/ and accessed via /uploads/restaurants/:filename
+// Add CORS headers for static files to allow cross-origin image loading
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET');
+  res.header('Access-Control-Allow-Headers', '*');
+  next();
+}, express.static(path.join(__dirname, '../uploads'), {
+  maxAge: '1d', // Cache images for 1 day
+  etag: true,
+  lastModified: true,
+}));
+
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/restaurants', restaurantRoutes);
@@ -87,6 +103,7 @@ app.use('/api/cash-discounts', cashDiscountRoutes);
 app.use('/api/ratings', ratingsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/monitoring', monitoringRoutes);
+app.use('/api/geocode', geocodeRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {

@@ -1,6 +1,4 @@
--- Migration: 009_update_restaurant_summary_view.sql
--- Description: Update restaurant_summary view to include average rating and count, AND filter unverified items
--- Created: 2024-11-22
+-- Description: Update restaurant_summary view to include image_url
 
 DROP VIEW IF EXISTS restaurant_summary;
 
@@ -18,10 +16,11 @@ SELECT
     r.website_url,
     r.operating_hours,
     r.is_verified,
+    r.image_url,
     r.created_at,
     r.updated_at,
     
-    -- Rating statistics
+        -- Rating statistics
     COALESCE(AVG(rr.rating), 0)::NUMERIC(3,1) AS average_rating,
     COUNT(DISTINCT rr.id) AS rating_count,
     
@@ -59,6 +58,7 @@ FROM restaurants r
 LEFT JOIN payment_methods pm ON r.id = pm.restaurant_id
 LEFT JOIN cash_discounts cd ON r.id = cd.restaurant_id
 LEFT JOIN restaurant_ratings rr ON r.id = rr.restaurant_id
+
 GROUP BY r.id;
 
-COMMENT ON VIEW restaurant_summary IS 'Consolidated view of restaurants with verified payment methods, discounts, and ratings';
+COMMENT ON VIEW restaurant_summary IS 'Consolidated view of restaurants with payment methods, discounts, ratings, and image URL';

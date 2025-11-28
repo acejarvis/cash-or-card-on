@@ -41,7 +41,8 @@ fi
 
 # Set defaults if not provided
 DO_CLUSTER_ID="${DO_CLUSTER_ID:-6875f660-de8c-427a-a59f-34ac3407d4a3}"
-TAG="${TAG:-$(git rev-parse --short HEAD 2>/dev/null || date +%Y%m%d%H%M%S)}"
+# Always use a unique tag with timestamp to ensure fresh image pulls
+TAG="${TAG:-$(git rev-parse --short HEAD 2>/dev/null || echo 'latest')-$(date +%s)}"
 
 # =============================================================================
 # Validate required variables
@@ -113,6 +114,14 @@ doctl kubernetes cluster kubeconfig save "$DO_CLUSTER_ID" --expiry-seconds 600
 echo -e "${GREEN}  ✓ kubectl configured${NC}"
 
 # =============================================================================
+# Integrate registry with Kubernetes cluster
+# =============================================================================
+echo -e "\n${BLUE}🔗 Integrating registry with Kubernetes cluster...${NC}"
+CLUSTER_NAME=$(doctl kubernetes cluster list --format Name --no-header | head -1)
+doctl kubernetes cluster registry add "$CLUSTER_NAME" 2>/dev/null || true
+echo -e "${GREEN}  ✓ Registry integrated with cluster${NC}"
+
+# =============================================================================
 # Get Kubernetes Node Public IP
 # =============================================================================
 echo -e "\n${BLUE}🌐 Getting Kubernetes Node Public IP...${NC}"
@@ -172,8 +181,13 @@ sed -i "s|<FRONTEND_IMAGE>|$REGISTRY/cash-or-card-frontend:$TAG|g" "$TEMP_DIR/fr
 sed -i "s|<DB_IMAGE>|$REGISTRY/cash-or-card-db:$TAG|g" "$TEMP_DIR/postgres.yaml"
 
 # Auto-configure CORS and API URL using node IP
-sed -i "s|<CORS_ORIGIN>|http://$NODE_IP:30001|g" "$TEMP_DIR/configmap.yaml"
+# CORS_ORIGIN should be the frontend URL (port 30000), not the backend
+sed -i "s|<CORS_ORIGIN>|http://$NODE_IP:30000|g" "$TEMP_DIR/configmap.yaml"
 sed -i "s|<REACT_APP_API_URL>|http://$NODE_IP:30001|g" "$TEMP_DIR/configmap.yaml"
+
+# Get the cluster ID for monitoring
+CLUSTER_ID=$(doctl kubernetes cluster list --format ID --no-header | head -1)
+sed -i "s|<DO_CLUSTER_ID>|$CLUSTER_ID|g" "$TEMP_DIR/configmap.yaml"
 
 # Set secrets
 sed -i "s|<POSTGRES_PASSWORD>|$POSTGRES_PASSWORD|g" "$TEMP_DIR/secrets.yaml"
@@ -193,6 +207,9 @@ kubectl apply -f "$TEMP_DIR/configmap.yaml"
 echo -e "${YELLOW}  → Applying secrets...${NC}"
 kubectl apply -f "$TEMP_DIR/secrets.yaml"
 
+echo -e "${YELLOW}  → Applying restaurant-images-pvc...${NC}"
+kubectl apply -f "$TEMP_DIR/restaurant-images-pvc.yaml"
+
 echo -e "${YELLOW}  → Applying postgres...${NC}"
 kubectl apply -f "$TEMP_DIR/postgres.yaml"
 kubectl rollout status deployment/postgres --timeout=120s
@@ -200,6 +217,27 @@ kubectl rollout status deployment/postgres --timeout=120s
 echo -e "${YELLOW}  → Applying backend...${NC}"
 kubectl apply -f "$TEMP_DIR/backend.yaml"
 kubectl rollout status deployment/backend --timeout=120s
+
+# =============================================================================
+# Seed restaurant images
+# =============================================================================
+echo -e "\n${BLUE}🖼️  Seeding restaurant images...${NC}"
+
+IMAGES_DIR="$SCRIPT_DIR/backend/uploads/restaurants"
+if [ -d "$IMAGES_DIR" ] && [ "$(ls -A "$IMAGES_DIR" 2>/dev/null | grep -v README)" ]; then
+    # Wait a moment for pod to be fully ready, then get the running pod name
+    sleep 2
+    BACKEND_POD=$(kubectl get pods -l app=backend --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    if [ -n "$BACKEND_POD" ]; then
+        echo -e "${YELLOW}  → Copying images to backend pod: $BACKEND_POD${NC}"
+        kubectl cp "$IMAGES_DIR/." "$BACKEND_POD:/app/uploads/restaurants/"
+        echo -e "${GREEN}  ✓ Restaurant images seeded${NC}"
+    else
+        echo -e "${YELLOW}  ⚠ No backend pod found, skipping image seeding${NC}"
+    fi
+else
+    echo -e "${YELLOW}  ⚠ No restaurant images found in $IMAGES_DIR, skipping${NC}"
+fi
 
 echo -e "${YELLOW}  → Applying frontend...${NC}"
 kubectl apply -f "$TEMP_DIR/frontend.yaml"

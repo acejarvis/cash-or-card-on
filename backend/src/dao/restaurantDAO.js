@@ -3,7 +3,12 @@ const { pool } = require('../config/database');
 class RestaurantDAO {
   // Get all restaurants with optional filters
   async findAll(filters = {}) {
-    let query = 'SELECT * FROM restaurant_summary WHERE 1=1';
+    let query = `SELECT 
+      id, name, address, city, province, postal_code, phone, category,
+      cuisine_tags, website_url, operating_hours, is_verified, image_url,
+      created_at, updated_at, payment_methods, cash_discounts,
+      average_rating, rating_count
+    FROM restaurant_summary WHERE 1=1`;
     const params = [];
     let paramCount = 1;
 
@@ -50,7 +55,12 @@ class RestaurantDAO {
 
   // Get single restaurant by ID
   async findById(id) {
-    const query = 'SELECT * FROM restaurant_summary WHERE id = $1';
+    const query = `SELECT 
+      id, name, address, city, province, postal_code, phone, category,
+      cuisine_tags, website_url, operating_hours, is_verified, image_url,
+      created_at, updated_at, payment_methods, cash_discounts,
+      average_rating, rating_count
+    FROM restaurant_summary WHERE id = $1`;
     const result = await pool.query(query, [id]);
     return result.rows[0];
   }

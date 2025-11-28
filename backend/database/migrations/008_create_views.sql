@@ -1,6 +1,4 @@
--- Migration: 007_create_views.sql
 -- Description: Create views for common queries and reporting
--- Created: 2024-10-20
 
 -- View: Restaurant summary with payment methods and cash discounts
 CREATE OR REPLACE VIEW restaurant_summary AS
