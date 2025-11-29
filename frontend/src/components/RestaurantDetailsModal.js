@@ -1,9 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import './RestaurantDetailsModal.css';
 import { titleCase, formatPostalCode } from '../utils/format';
-import restaurantImg from '../files/restaurant.jpg';
+import defaultImage from '../files/restaurant.jpg';
 
 const RestaurantDetailsModal = ({ restaurant, onClose, user, onRefresh }) => {
+  // Normalize name to match server file naming convention (lowercase, alphanumeric only)
+  const normalizeName = (name) => {
+    return name ? name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+  };
+
+  // Try to load image from external volume first
+  const [imgSrc, setImgSrc] = useState(`/images/${normalizeName(restaurant.name)}.jpg`);
+
+  const handleImageError = () => {
+    // Fallback to default image if external one fails
+    setImgSrc(defaultImage);
+  };
+
   const [isClosing, setIsClosing] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [localPayments, setLocalPayments] = useState(restaurant.payment_methods || []);
@@ -518,9 +531,10 @@ const RestaurantDetailsModal = ({ restaurant, onClose, user, onRefresh }) => {
 
         <div className="modal-section header-section">
           <img
-            src={restaurantImg}
+            src={imgSrc}
             alt={`${restaurant.name || 'Restaurant'} logo`}
             className="modal-logo"
+            onError={handleImageError}
           />
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
             <h2 style={{ margin: 0 }}>{titleCase(restaurant.name) || 'Unknown Restaurant'}</h2>

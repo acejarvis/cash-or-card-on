@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './RestaurantCard.css';
-import restaurantImg from '../files/restaurant.jpg';
 import { titleCase, formatPostalCode } from '../utils/format';
+import defaultImage from '../files/restaurant.jpg';
 
 const getRestaurantStatus = (operatingHours) => {
   // operatingHours can be an array (old mock) or an object (API) keyed by weekday
@@ -90,6 +90,19 @@ const getTopDiscount = (discounts) => {
 const RestaurantCard = ({ restaurant, onClick, onMouseEnter, onMouseLeave, isFiltering = false }) => {
   const status = getRestaurantStatus(restaurant.operating_hours);
   const topDiscount = getTopDiscount(restaurant.cash_discounts);
+  
+  // Normalize name to match server file naming convention (lowercase, alphanumeric only)
+  const normalizeName = (name) => {
+    return name ? name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+  };
+  
+  // Try to load image from external volume first
+  const [imgSrc, setImgSrc] = useState(`/images/${normalizeName(restaurant.name)}.jpg`);
+
+  const handleImageError = () => {
+    // Fallback to default image if external one fails
+    setImgSrc(defaultImage);
+  };
 
   // compute stagger delay
   const delay = isFiltering ? 0 : 0; // removed index dependency for delay to simplify
@@ -128,9 +141,10 @@ const RestaurantCard = ({ restaurant, onClick, onMouseEnter, onMouseLeave, isFil
     >
       <div className="card-image-container">
         <img
-          src={restaurantImg}
+          src={imgSrc}
           alt={`${restaurant.name || 'Restaurant'} logo`}
           className="restaurant-image"
+          onError={handleImageError}
         />
       </div>
 
