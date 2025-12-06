@@ -48,7 +48,7 @@ services:
       RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
       RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
       # DigitalOcean Monitoring
-      DO_API_TOKEN: "dop_v1_d8a919ce862685ad4ffcb5435c5256ea48068876882513aab0262bb12c769ca7"
+      DO_API_TOKEN: "dop_v1_c68d0c21fbf57c9e553bc5a532aae9912d0e2c8d8d05dbc6d3bf35416e7b967a"
       DO_DROPLET_ID: "531882139"
     ports:
       - "${BACKEND_PORT:-3001}:3001"
@@ -95,6 +95,8 @@ services:
     ports:
       # nginx in the container serves on port 80, map host 3000 to container 80
       - "${FRONTEND_PORT:-3000}:80"
+    volumes:
+      - ./frontend/src/files:/usr/share/nginx/html/images:ro
     networks:
       - cash-or-card-network
     depends_on:

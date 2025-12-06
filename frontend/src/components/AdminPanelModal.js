@@ -20,11 +20,10 @@ const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
   }, [restaurants]);
 
   const filteredRestaurants = useMemo(() => {
-    // Filter out unverified restaurants (they appear in Pending Approvals tab only)
-    const verifiedItems = items.filter(r => r.is_verified !== false);
+    // Show all restaurants regardless of verification status in Admin Panel
     const q = String(search || '').trim().toLowerCase();
-    if (!q) return verifiedItems;
-    return verifiedItems.filter((r) => {
+    if (!q) return items;
+    return items.filter((r) => {
       const id = String(r.id || r.restaurant_id || r._id || '').toLowerCase();
       const name = String(r.name || '').toLowerCase();
       const city = String(r.city || '').toLowerCase();
@@ -727,8 +726,26 @@ const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
 
                       const created = body && body.restaurant ? body.restaurant : (body && body.id ? body : null);
                       if (created) {
+                        // Auto-verify since admin created it
+                        if (created.id) {
+                          try {
+                            const verifyResp = await fetch(`${API_BASE_URL}/restaurants/${created.id}/verify`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+                            });
+                            if (verifyResp.ok) {
+                              created.is_verified = true;
+                            } else {
+                              console.warn('Auto-verify failed with status:', verifyResp.status);
+                            }
+                          } catch (e) {
+                            console.warn('Auto-verify failed', e);
+                          }
+                        }
+
                         setItems((prev) => [created, ...prev]);
                         showToast('Restaurant created');
+                        if (onRefresh) onRefresh();
                         setShowCreateModal(false);
                         setNewRestaurant({ name: '', address: '', city: '', province: 'Ontario', postal_code: '', phone: '', category: '', cuisine_tags: '', website_url: '' });
                         // reset operating hours to defaults (09:00-22:00 every day)

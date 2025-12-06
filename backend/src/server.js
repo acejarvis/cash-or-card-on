@@ -10,10 +10,22 @@ const HOST = config.HOST;
 const startServer = async () => {
   try {
     console.log('🔄 Testing database connection...');
-    const dbConnected = await testConnection();
+    
+    // Retry logic for database connection
+    let retries = 5;
+    let dbConnected = false;
+    
+    while (retries > 0 && !dbConnected) {
+      dbConnected = await testConnection();
+      if (!dbConnected) {
+        console.log(`⚠️ Database connection failed. Retrying in 5 seconds... (${retries} attempts left)`);
+        retries--;
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
 
     if (!dbConnected) {
-      console.error('❌ Failed to connect to database. Exiting...');
+      console.error('❌ Failed to connect to database after multiple attempts. Exiting...');
       process.exit(1);
     }
 
