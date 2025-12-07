@@ -1,5 +1,6 @@
 # Environment variables
 .env
+.env.deploy
 
 # Docker volumes and data
 postgres_data/
@@ -13,7 +14,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-package-lock.json
 
 # IDE
 .vscode/

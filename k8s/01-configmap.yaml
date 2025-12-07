@@ -10,8 +10,8 @@ data:
   PGDATA: /var/lib/postgresql/data/pgdata
   NODE_ENV: production
   PORT: "3001"
-  # CORS Configuration
-  CORS_ORIGIN: "http://165.227.35.55:30000"
+  # CORS Configuration - supports multiple origins (comma-separated) or wildcard
+  CORS_ORIGIN: "http://165.227.35.55:30000,http://localhost:3000,*"
   # Frontend Config
   # This must be the PUBLIC IP of your Droplet because the browser (client) calls this URL directly
   REACT_APP_API_URL: "http://165.227.35.55:30001/api"

@@ -85,7 +85,8 @@ We adopted a **Three-Tier Architecture**, separating the application into distin
 ```
 ┌─────────────────┐
 │  React Frontend │ (Port 3000)
-│  (In Progress)  │
+│   + Material-UI │
+│   + Leaflet Map │
 └────────┬────────┘
          │
          │ HTTP/REST

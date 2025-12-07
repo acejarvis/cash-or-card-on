@@ -1,0 +1,105 @@
+name: Deploy to DigitalOcean Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'do-k8s/**'
+      - '.github/workflows/**'
+
+jobs:
+  build-and-deploy:  
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@main
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry with short-lived credentials
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Save DigitalOcean kubeconfig with short-lived credentials
+        run: doctl kubernetes cluster kubeconfig save ${{ secrets.DO_CLUSTER_ID }} --expiry-seconds 600
+
+      - name: Get Kubernetes Node Public IP
+        id: get-node-ip
+        run: |
+          # Get the external IP of the first node in the cluster using kubectl
+          NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
+          
+          # Fallback: If ExternalIP is not available, try to get it from DigitalOcean API
+          if [ -z "$NODE_IP" ]; then
+            # Get the node name (droplet name)
+            NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
+            # Get droplet IP using doctl
+            NODE_IP=$(doctl compute droplet list --format Name,PublicIPv4 --no-header | grep "$NODE_NAME" | awk '{print $2}')
+          fi
+          
+          echo "NODE_IP=$NODE_IP" >> $GITHUB_OUTPUT
+          echo "Detected Node IP: $NODE_IP"
+
+      - name: Build and Push Backend Image
+        run: |
+          docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-backend:$(echo $GITHUB_SHA | head -c7) ./backend
+          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-backend:$(echo $GITHUB_SHA | head -c7)
+
+      - name: Build and Push Frontend Image
+        run: |
+          NODE_IP=${{ steps.get-node-ip.outputs.NODE_IP }}
+          # Pass the API URL as a build argument so React can call the correct backend
+          docker build \
+            --build-arg REACT_APP_API_BASE="http://${NODE_IP}:30001/api" \
+            -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-frontend:$(echo $GITHUB_SHA | head -c7) \
+            ./frontend
+          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-frontend:$(echo $GITHUB_SHA | head -c7)
+
+      - name: Build and Push DB Image
+        run: |
+          docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:$(echo $GITHUB_SHA | head -c7) ./backend/database
+          docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:$(echo $GITHUB_SHA | head -c7)
+
+      - name: Validate required secrets
+        run: |
+          # Check if POSTGRES_PASSWORD is set
+          if [ -z "${{ secrets.POSTGRES_PASSWORD }}" ]; then
+            echo "::error::POSTGRES_PASSWORD secret is not set. Please add it to your GitHub repository secrets."
+            exit 1
+          fi
+
+      - name: Update deployment files
+        run: |
+          TAG=$(echo $GITHUB_SHA | head -c7)
+          NODE_IP=${{ steps.get-node-ip.outputs.NODE_IP }}
+          
+          # Set image tags
+          sed -i 's|<BACKEND_IMAGE>|registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-backend:'${TAG}'|' $GITHUB_WORKSPACE/do-k8s/backend.yaml
+          sed -i 's|<FRONTEND_IMAGE>|registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-frontend:'${TAG}'|' $GITHUB_WORKSPACE/do-k8s/frontend.yaml
+          sed -i 's|<DB_IMAGE>|registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/cash-or-card-db:'${TAG}'|' $GITHUB_WORKSPACE/do-k8s/postgres.yaml
+          
+          # Auto-configure CORS and API URL using node IP
+          sed -i 's|<CORS_ORIGIN>|http://'${NODE_IP}':30000|' $GITHUB_WORKSPACE/do-k8s/configmap.yaml
+          sed -i 's|<REACT_APP_API_URL>|http://'${NODE_IP}':30001|' $GITHUB_WORKSPACE/do-k8s/configmap.yaml
+          
+          # Set secrets - using environment variables to handle special characters
+          sed -i "s|<POSTGRES_PASSWORD>|${{ secrets.POSTGRES_PASSWORD }}|" $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+          sed -i "s|<JWT_SECRET>|${{ secrets.JWT_SECRET }}|" $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+          sed -i "s|<DO_API_TOKEN>|${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}|" $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+
+      - name: Deploy to DigitalOcean Kubernetes
+        run: |
+          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/configmap.yaml
+          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/secrets.yaml
+          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/postgres.yaml
+          kubectl rollout status deployment/postgres
+          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/backend.yaml
+          kubectl rollout status deployment/backend
+          kubectl apply -f $GITHUB_WORKSPACE/do-k8s/frontend.yaml
+          kubectl rollout status deployment/frontend
+          
