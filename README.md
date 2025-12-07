@@ -14,20 +14,6 @@
 
 ## 1. Motivation
 
-<<<<<<< Updated upstream
-### For Frontend Developers
-
-Get the backend API and database running in one command:
-
-```bash
-# Start all services (database + backend API)
-docker-compose up -d
-
-# Verify everything is running
-curl http://localhost:3001/health
-curl http://localhost:3001/api/restaurants
-```
-=======
 ### 1.1 Problem Statement
 Dining out in Ontario, particularly in the culturally rich and diverse culinary landscape of the Greater Toronto Area (GTA), presents an unexpected and persistent challenge: payment method uncertainty. While the global economy increasingly moves towards a cashless society, a significant number of restaurants—especially authentic Asian establishments, small family-owned businesses, and food court vendors—retain restrictive payment policies.
 
@@ -42,35 +28,14 @@ This uncertainty creates significant friction in the dining experience. Customer
 Furthermore, a "hidden economy" of cash discounts exists. Many restaurants offer incentives—typically **5% to 15% discounts**—for cash payments to avoid credit card processing fees (which can range from 1.5% to 3.5% for merchants). This information is rarely advertised online and is usually only discovered at the point of sale. Without advance knowledge, budget-conscious consumers miss out on significant savings opportunities. For a family dinner costing $100, a 10% cash discount represents $10 in savings—enough to cover an appetizer or dessert.
 
 Existing solutions like Google Maps, Yelp, or TripAdvisor provide incomplete or generic payment information. They often rely on binary attributes (e.g., "Accepts Credit Cards: Yes/No") which fail to capture the nuance of specific card networks or cash incentives. Information is frequently outdated, unverified, or buried deep within user reviews, requiring manual and time-consuming searching.
->>>>>>> Stashed changes
 
 ### 1.2 Significance
 The significance of solving this problem lies in bridging the information gap between businesses and consumers, creating value for all stakeholders in the dining ecosystem.
 
-<<<<<<< Updated upstream
-**API Base URL:** `http://localhost:3001/api`
-=======
 For **consumers**, accurate payment information provides peace of mind and financial benefits. Knowing ahead of time that a restaurant is cash-only allows diners to prepare by visiting their bank's ATM, avoiding fees. Knowing about cash discounts allows them to make informed financial decisions. In an era of rising inflation, these small savings accumulate.
->>>>>>> Stashed changes
 
 For **businesses**, clear communication of payment policies reduces friction at the point of sale. It improves table turnover by avoiding payment delays caused by card rejections. Furthermore, it can attract a specific segment of budget-conscious customers who are actively looking for cash deals. By listing their discounts on our platform, businesses can turn a cost-saving measure into a marketing advantage.
 
-<<<<<<< Updated upstream
-### For Backend Developers
-
-```bash
-# Start database only
-docker-compose up -d postgres
-
-# Install backend dependencies
-cd backend && npm install
-
-# Run backend locally
-npm run dev
-```
-
-� See [backend/README.md](backend/README.md) for API documentation.
-=======
 For the **community**, a crowdsourced platform fosters a sense of shared knowledge. By democratizing this information, we empower diners to help one another. The platform serves as a digital "word-of-mouth" network, preserving the local knowledge that is often lost in large, generic platforms.
 
 ### 1.3 Target Audience
@@ -78,7 +43,6 @@ Our platform serves three primary user groups:
 1.  **Diners and Food Enthusiasts**: Individuals planning restaurant visits who want to ensure a smooth experience without payment hiccups. They value convenience and reliability.
 2.  **Budget-Conscious Consumers**: Students, large families, and frugal diners specifically seeking cash discount opportunities to maximize their dining budget. They value savings and deal discovery.
 3.  **Tourists and Newcomers**: Visitors unfamiliar with the local payment landscape who need reliable, verified information to navigate the city's dining scene. They may not carry local currency or know which ATMs are safe, making accurate card acceptance info critical.
->>>>>>> Stashed changes
 
 ---
 
@@ -148,12 +112,6 @@ This separation allows for independent scaling. For example, if traffic spikes, 
 - **HTTP Client**: **Axios** was used for making asynchronous HTTP requests to the backend API, handling request interception for JWT token injection and centralized error handling.
 - **Visualization**: **Chart.js** was integrated to render real-time graphs for the resource monitoring dashboard, visualizing CPU and memory metrics.
 
-<<<<<<< Updated upstream
-**Frontend:** (In Development)
-- React.js
-- React Router
-- Axios/Fetch API
-=======
 ### 3.3 Backend
 - **Runtime**: **Node.js** with **Express.js** was selected for its non-blocking I/O model, making it ideal for handling concurrent API requests typical of a social platform.
 - **API Design**: We implemented a **RESTful API** structure, defining clear endpoints for resources (e.g., `GET /api/restaurants`, `POST /api/votes`).
@@ -164,7 +122,6 @@ This separation allows for independent scaling. For example, if traffic spikes, 
     - **Helmet**: Sets secure HTTP headers to protect against well-known web vulnerabilities.
     - **Express-Rate-Limit**: Limits repeated requests from the same IP to prevent brute-force attacks and DDoS.
     - **CORS**: Configured to allow requests only from our specific frontend domain.
->>>>>>> Stashed changes
 
 ### 3.3.1 Key API Endpoints
 - **Public**:
@@ -179,12 +136,6 @@ This separation allows for independent scaling. For example, if traffic spikes, 
     - `POST /api/restaurants/:id/verify`: Verify restaurant.
     - `DELETE /api/restaurants/:id`: Delete restaurant.
 
-<<<<<<< Updated upstream
-**DevOps:**
-- Docker & Docker Compose
-- pgAdmin for database management
-- Automated migrations and seeding
-=======
 ### 3.4 Database
 - **System**: **PostgreSQL** (v15) was chosen for its reliability, ACID compliance, and strong support for complex relational queries.
 - **Extensions**:
@@ -212,7 +163,6 @@ This separation allows for independent scaling. For example, if traffic spikes, 
     - **Secrets**: Securely stores sensitive data (e.g., `DB_PASSWORD`, `JWT_SECRET`) encoded in base64.
     - **PersistentVolumeClaims (PVC)**: We requested 50GB of block storage from DigitalOcean to ensure PostgreSQL data persists even if the database pod crashes or is rescheduled to a different node.
 - **Registry**: **DigitalOcean Container Registry (DOCR)** stores our private Docker images.
->>>>>>> Stashed changes
 
 ---
 
@@ -326,115 +276,9 @@ We utilize `docker-compose` to orchestrate the entire development environment. T
     - **frontend**: The React development server (Port 3000). It supports hot-reloading.
     - **pgadmin**: A web-based database GUI (Port 5050) for debugging.
 
-<<<<<<< Updated upstream
----
-
-## 🛠️ Development Setup
-
-### Prerequisites
-- Docker & Docker Compose
-- Node.js 22+ (for local backend development)
-- Git
-
-### Clone Repository
-```bash
-git clone https://github.com/acejarvis/cash-or-card-on.git
-cd cash-or-card-on
-```
-
-### Environment Configuration
-```bash
-# Environment file is already configured with defaults
-cat .env
-
-# Key variables (defaults work for local development):
-# - POSTGRES_DB=cash_or_card
-# - POSTGRES_USER=postgres
-# - POSTGRES_PASSWORD=postgres
-# - BACKEND_PORT=3001
-# - CORS_ORIGIN=http://localhost:3000
-```
-
-### Start Services
-```bash
-# Start everything (recommended)
-docker-compose up -d
-
-# Or start individually
-docker-compose up -d postgres  # Database only
-docker-compose up -d backend   # Backend API
-docker-compose up -d pgadmin   # Database GUI (optional)
-```
-
-### Verify Installation
-```bash
-# Check services
-docker-compose ps
-
-# Test backend
-curl http://localhost:3001/health
-
-# Test API
-curl http://localhost:3001/api/restaurants
-
-# View logs
-docker-compose logs -f backend
-```
-
-### Common Commands
-```bash
-# Restart services
-docker-compose restart
-
-# Stop services (keep data)
-docker-compose stop
-
-# Stop and remove (keep data)
-docker-compose down
-
-# Fresh start (remove all data)
-docker-compose down -v && docker-compose up -d
-
-# Rebuild after code changes
-docker-compose build backend
-docker-compose up -d backend
-```
-
----
-
-## 🔐 Security Features
-
-- **Password Hashing:** bcrypt with 10 salt rounds
-- **JWT Authentication:** 7-day token expiry
-- **Rate Limiting:** 100 requests per 15 minutes per IP
-- **CORS Protection:** Configurable origin whitelist
-- **SQL Injection Prevention:** Parameterized queries
-- **Input Validation:** Express-validator on all endpoints
-- **Helmet Security Headers:** XSS, clickjacking protection
-- **Role-Based Access Control:** Guest, registered, admin roles
-
----
-
-## 📊 Vote Confidence System
-
-The platform uses the **Wilson Score Confidence Interval** for vote confidence:
-
-- Handles small sample sizes effectively
-- Prevents manipulation from single votes
-- Balances positive and negative feedback
-- More conservative for items with few votes
-- Used by Reddit, Yelp, and other major platforms
-
-**Formula:** 95% confidence interval for Bernoulli parameter
-
----
-
-## 📁 Project Structure
-=======
 3.  **Verify Installation**:
     - Open your browser to `http://localhost:3000`. You should see the Cash-or-Card-ON homepage.
     - Check the backend health: `curl http://localhost:3001/health`.
->>>>>>> Stashed changes
 
 ### 6.3 Project Structure
 ```
@@ -452,16 +296,6 @@ cash-or-card-on/
 │   │   └── seeds/            # Test data
 │   └── Dockerfile
 ├── frontend/
-<<<<<<< Updated upstream
-│   └── cash-or-card/         # React application (in progress)
-├── docs/
-│   ├── Project_Proposal.md   # Project proposal
-│   └── Development_Plan.md   # Development timeline
-├── docker-compose.yml        # Service orchestration
-├── GETTING_STARTED.md        # Quick start guide
-├── .env                      # Environment variables
-└── README.md                 # This file
-=======
 │   ├── src/
 │   │   ├── components/       # React components
 │   │   ├── utils/            # Helper functions
@@ -470,7 +304,6 @@ cash-or-card-on/
 ├── do-k8s/                   # Kubernetes manifests
 ├── docs/                     # Documentation
 └── docker-compose.yml        # Service orchestration
->>>>>>> Stashed changes
 ```
 
 ### 6.4 Troubleshooting
@@ -483,65 +316,6 @@ cash-or-card-on/
 
 ## 7. Deployment Information
 
-<<<<<<< Updated upstream
-### ✅ Completed (Weeks 1-2)
-
-**Database & Infrastructure**
-- [x] PostgreSQL schema with 7 tables
-- [x] Database migrations and seeding
-- [x] Docker Compose setup
-- [x] pgAdmin integration
-
-**Backend API**
-- [x] Express.js server with Node.js 22
-- [x] JWT authentication system
-- [x] Role-based authorization
-- [x] All CRUD endpoints for restaurants
-- [x] Payment method submission and voting
-- [x] Cash discount submission and voting
-- [x] Admin verification endpoints
-- [x] Connection pooling
-- [x] Error handling middleware
-- [x] Rate limiting and security headers
-- [x] Docker multi-stage build
-- [x] Health check endpoints
-
-**Documentation**
-- [x] Backend API documentation
-- [x] Getting started guide
-- [x] Database schema documentation
-- [x] Project proposal
-- [x] Development plan
-
-### 🔄 In Progress (Weeks 3-4)
-
-**Frontend Development**
-- [ ] React application setup
-- [ ] Component library
-- [ ] Authentication UI
-- [ ] Restaurant search and filtering
-- [ ] Restaurant details page
-- [ ] Payment method submission
-- [ ] Voting interface
-- [ ] Admin panel
-
-### ⏳ Planned (Weeks 5-8)
-
-**Advanced Features**
-- [ ] Advanced search filters
-- [ ] User profile management
-- [ ] Analytics dashboard
-- [ ] Email notifications
-- [ ] Data export functionality
-
-**Testing & Deployment**
-- [ ] Unit tests
-- [ ] Integration tests
-- [ ] E2E tests
-- [ ] Kubernetes deployment
-- [ ] CI/CD pipeline
-- [ ] Monitoring and logging
-=======
 ### 7.1 Deployment Pipeline
 Our deployment is fully automated via **GitHub Actions**, ensuring a robust CI/CD process. The workflow file is located at `.github/workflows/deploy.yml`.
 
@@ -559,7 +333,6 @@ The infrastructure is defined in the `do-k8s/` directory:
 - `frontend.yaml`: Defines the Deployment (1 replica) and Service (NodePort 30000).
 - `postgres.yaml`: Defines a **StatefulSet** (instead of Deployment) for the database. This is critical for stateful applications. It mounts a **PersistentVolumeClaim (PVC)** to `/var/lib/postgresql/data`, ensuring data survives pod restarts.
 - `secrets.yaml`: Contains base64-encoded secrets for `POSTGRES_PASSWORD` and `JWT_SECRET`.
->>>>>>> Stashed changes
 
 ---
 
@@ -602,7 +375,7 @@ This project provided invaluable hands-on experience with the full software deve
 **URL**: https://youtu.be/LntkDVGhmWw
 
 ### 10.2 Live Deployment
-**URL**: http://165.227.35.55:30000
+**URL**: http://159.203.22.138:30000/
 
 ---
 
