@@ -374,7 +374,7 @@ This project provided invaluable hands-on experience with the full software deve
 ### 10.1 Video Demo
 **URL**: https://youtu.be/LntkDVGhmWw
 
-### 10.2 Live Deployment
+### 10.2 Cloud Deployment
 **URL**: http://159.203.22.138:30000/
 
 ---
