@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: cash-or-card-frontend:latest
-          imagePullPolicy: Never
+          image: <FRONTEND_IMAGE>
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
 ---

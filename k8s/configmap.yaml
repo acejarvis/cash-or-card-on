@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cash-or-card-config
+data:
+  POSTGRES_DB: cash_or_card
+  POSTGRES_USER: postgres
+  POSTGRES_HOST: postgres
+  POSTGRES_PORT: "5432"
+  PGDATA: /var/lib/postgresql/data/pgdata
+  NODE_ENV: production
+  PORT: "3001"
+  # CORS Configuration - supports multiple origins (comma-separated) or wildcard
+  # Auto-configured by CI/CD: http://<NODE_PUBLIC_IP>:30000 (frontend nodePort)
+  CORS_ORIGIN: "<CORS_ORIGIN>,http://localhost:3000,*"
+  # Frontend Config
+  # Auto-configured by CI/CD: http://<NODE_PUBLIC_IP>:30001 (backend nodePort)
+  REACT_APP_API_URL: "<REACT_APP_API_URL>/api"
+  DO_DROPLET_ID: "<DO_DROPLET_ID>"
+  DO_API_TOKEN: "<DO_API_TOKEN>"

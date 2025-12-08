@@ -16,7 +16,7 @@ kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
 spec:
-  storageClassName: manual
+  storageClassName: do-block-storage
   accessModes:
     - ReadWriteOnce
   resources:
@@ -40,8 +40,8 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: cash-or-card-db:latest
-          imagePullPolicy: Never
+          image: <DB_IMAGE>
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5432
           envFrom:
@@ -50,8 +50,8 @@ spec:
             - secretRef:
                 name: cash-or-card-secrets
           volumeMounts:
-            - name: postgres-storage
-              mountPath: /var/lib/postgresql/data
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-storage
       volumes:
         - name: postgres-storage
           persistentVolumeClaim:

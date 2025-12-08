@@ -20,6 +20,7 @@ SELECT
     r.is_verified,
     r.created_at,
     r.updated_at,
+    r.image_url,
     
     -- Rating statistics
     COALESCE(AVG(rr.rating), 0)::NUMERIC(3,1) AS average_rating,

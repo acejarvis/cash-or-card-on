@@ -89,7 +89,8 @@ We adopted a **Three-Tier Architecture**, separating the application into distin
 ```
 ┌─────────────────┐
 │  React Frontend │ (Port 3000)
-│  (In Progress)  │
+│   + Material-UI │
+│   + Leaflet Map │
 └────────┬────────┘
          │
          │ HTTP/REST
@@ -162,10 +163,11 @@ This separation allows for independent scaling. For example, if traffic spikes, 
     - **Deployments**: We defined deployments for Backend (replicas for HA) and Frontend.
     - **Services**:
         - `ClusterIP`: For internal communication (Backend <-> Database).
-        - `NodePort`: For exposing services to the external load balancer.
+        - `NodePort`: For exposing services to the external load balancer (Frontend: 30000, Backend: 30001, Grafana: 30002).
     - **ConfigMaps**: Stores non-sensitive config (e.g., `DB_HOST`, `NODE_ENV`).
     - **Secrets**: Securely stores sensitive data (e.g., `DB_PASSWORD`, `JWT_SECRET`) encoded in base64.
     - **PersistentVolumeClaims (PVC)**: We requested 50GB of block storage from DigitalOcean to ensure PostgreSQL data persists even if the database pod crashes or is rescheduled to a different node.
+    - **Monitoring**: We deployed the **kube-prometheus-stack** to provide comprehensive cluster monitoring. Grafana is exposed via NodePort 30002, allowing administrators to visualize metrics alongside the application.
 - **Registry**: **DigitalOcean Container Registry (DOCR)** stores our private Docker images.
 
 ---
@@ -316,7 +318,7 @@ cash-or-card-on/
 │   │   ├── utils/            # Helper functions
 │   │   └── App.js            # Main app component
 │   └── Dockerfile
-├── do-k8s/                   # Kubernetes manifests
+├── k8s/                      # Kubernetes manifests
 ├── docs/                     # Documentation
 └── docker-compose.yml        # Service orchestration
 ```
@@ -354,7 +356,7 @@ The infrastructure is defined in the `k8s/` directory:
 ## 8. Individual Contributions
 
 ### Jarvis Wang
-- **Infrastructure Architect**: Designed and implemented the entire Kubernetes infrastructure on DigitalOcean. Wrote all K8s manifests (`deployment`, `service`, `statefulset`, `pvc`, `ingress`) and configured the cluster networking.
+- **Infrastructure Architect**: Designed and implemented the entire Kubernetes infrastructure on DigitalOcean. Wrote all K8s manifests (`deployment`, `service`, `statefulset`, `pvc`, `ingress`), configured the cluster networking and set up Prometheus/Grafana monitoring.
 - **DevOps Engineer**: Built the CI/CD pipeline using GitHub Actions. Solved complex issues related to dynamic environment variable injection during the Docker build process.
 - **Backend Core**: Set up the initial Node.js/Express server structure. Implemented the database connection logic using `pg-pool` and handled environment configuration management.
 - **Database Administrator**: Designed the initial database schema and wrote the SQL migration scripts. Managed database security and user roles.
@@ -389,8 +391,9 @@ This project provided invaluable hands-on experience with the full software deve
 ### 10.1 Video Demo
 **URL**: https://youtu.be/LntkDVGhmWw
 
-### 10.2 Cloud Deployment
-**URL**: http://159.203.22.138:30000/
+### 10.2 Cloud Deployment (IP might be automatically (unlikely) changed because of horizontal autoscaler)
+* **App URL**: http://142.93.145.130:30000/
+* **Monitoring URL**: http://142.93.145.130:30002/ (user: `admin` password: `prom-operator`)
 
 ---
 

@@ -5,6 +5,10 @@ echo "=========================================="
 echo "Initializing Cash-or-Card Database"
 echo "=========================================="
 
+# Clean up existing data (Drop all tables/views/etc)
+echo "Cleaning up existing data..."
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c "DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;"
+
 # Run migrations in order
 echo "Running database migrations..."
 
