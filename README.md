@@ -376,9 +376,9 @@ This project provided invaluable hands-on experience with the full software deve
 ### 10.1 Video Demo
 **URL**: https://youtu.be/LntkDVGhmWw
 
-### 10.2 Cloud Deployment
+### 10.2 Cloud Deployment (IP might be automatically (unlikely) changed because of horizontal autoscaler)
 * **App URL**: http://142.93.145.130:30000/
-* **Monitoring URL**: http://142.93.145.130:30000/ (user: `admin` password: `prom-operator`)
+* **Monitoring URL**: http://142.93.145.130:30002/ (user: `admin` password: `prom-operator`)
 
 ---
 
