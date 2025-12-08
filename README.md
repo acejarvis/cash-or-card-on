@@ -376,7 +376,7 @@ This project provided invaluable hands-on experience with the full software deve
 **URL**: https://youtu.be/LntkDVGhmWw
 
 ### 10.2 Cloud Deployment
-**URL**: http://159.203.22.138:30000/
+**URL**: http://142.93.145.130:30000/
 
 ---
 

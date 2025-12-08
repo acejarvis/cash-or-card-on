@@ -68,21 +68,22 @@ class RestaurantDAO {
       cuisine_tags = [],
       website_url,
       operating_hours,
-      data_source = 'user_submission'
+      data_source = 'user_submission',
+      image_url
     } = restaurantData;
 
     const query = `
       INSERT INTO restaurants (
         name, address, city, province, postal_code, phone,
-        category, cuisine_tags, website_url, operating_hours, data_source
+        category, cuisine_tags, website_url, operating_hours, data_source, image_url
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING *
     `;
 
     const result = await pool.query(query, [
       name, address, city, province, postal_code, phone,
-      category, cuisine_tags, website_url, operating_hours, data_source
+      category, cuisine_tags, website_url, operating_hours, data_source, image_url
     ]);
 
     return result.rows[0];
@@ -96,7 +97,7 @@ class RestaurantDAO {
 
     const allowedFields = [
       'name', 'address', 'city', 'province', 'postal_code', 'phone',
-      'category', 'cuisine_tags', 'website_url', 'operating_hours'
+      'category', 'cuisine_tags', 'website_url', 'operating_hours', 'image_url'
     ];
 
     Object.entries(updates).forEach(([key, value]) => {

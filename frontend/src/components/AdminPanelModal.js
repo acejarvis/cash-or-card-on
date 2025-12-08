@@ -42,7 +42,7 @@ const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
   // Create restaurant modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newRestaurant, setNewRestaurant] = useState({
-    name: '', address: '', city: '', province: 'Ontario', postal_code: '', phone: '', category: 'Other', cuisine_tags: '', website_url: ''
+    name: '', address: '', city: '', province: 'Ontario', postal_code: '', phone: '', category: 'Other', cuisine_tags: '', website_url: '', image_url: ''
   });
   const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const dayLabels = { monday: 'Mon', tuesday: 'Tue', wednesday: 'Wed', thursday: 'Thu', friday: 'Fri', saturday: 'Sat', sunday: 'Sun' };
@@ -670,6 +670,7 @@ const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
                   <input className="input" placeholder="Phone" value={newRestaurant.phone} onChange={(e) => setNewRestaurant({ ...newRestaurant, phone: e.target.value })} />
                   <input className="input" placeholder="Cuisine tags (comma separated)" value={newRestaurant.cuisine_tags} onChange={(e) => setNewRestaurant({ ...newRestaurant, cuisine_tags: e.target.value })} />
                   <input className="input" placeholder="Website URL" value={newRestaurant.website_url} onChange={(e) => setNewRestaurant({ ...newRestaurant, website_url: e.target.value })} />
+                  <input className="input" placeholder="Image Filename (e.g. restaurant.jpg)" value={newRestaurant.image_url} onChange={(e) => setNewRestaurant({ ...newRestaurant, image_url: e.target.value })} />
                   <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8 }}>
                     <div style={{ fontWeight: 700, marginBottom: 6 }}>Operating hours</div>
                     {dayKeys.map((d) => (
@@ -747,7 +748,7 @@ const AdminPanelModal = ({ restaurants = [], onClose, onRefresh }) => {
                         showToast('Restaurant created');
                         if (onRefresh) onRefresh();
                         setShowCreateModal(false);
-                        setNewRestaurant({ name: '', address: '', city: '', province: 'Ontario', postal_code: '', phone: '', category: '', cuisine_tags: '', website_url: '' });
+                        setNewRestaurant({ name: '', address: '', city: '', province: 'Ontario', postal_code: '', phone: '', category: '', cuisine_tags: '', website_url: '', image_url: '' });
                         // reset operating hours to defaults (09:00-22:00 every day)
                         setNewOperatingHours(() => getDefaultOperatingHours());
                       }

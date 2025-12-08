@@ -19,6 +19,7 @@ SELECT
     r.is_verified,
     r.created_at,
     r.updated_at,
+    r.image_url,
     
     -- Aggregated payment methods
     COALESCE(

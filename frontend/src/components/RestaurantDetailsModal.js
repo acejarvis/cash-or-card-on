@@ -3,18 +3,53 @@ import './RestaurantDetailsModal.css';
 import { titleCase, formatPostalCode } from '../utils/format';
 import defaultImage from '../files/restaurant.jpg';
 
+// Import all images from ../files
+const images = require.context('../files', false, /\.(png|jpe?g|svg)$/);
+
+const getRestaurantImage = (imageName) => {
+  if (!imageName) return null;
+  try {
+    return images(`./${imageName}`);
+  } catch (err) {
+    return null;
+  }
+};
+
 const RestaurantDetailsModal = ({ restaurant, onClose, user, onRefresh }) => {
   // Normalize name to match server file naming convention (lowercase, alphanumeric only)
   const normalizeName = (name) => {
     return name ? name.toLowerCase().replace(/[^a-z0-9]/g, '') : '';
   };
 
-  // Try to load image from external volume first
-  const [imgSrc, setImgSrc] = useState(`/images/${normalizeName(restaurant.name)}.jpg`);
+  // Try to load image from database field first, then fallback to local files by name, then default
+  const [imgSrc, setImgSrc] = useState(() => {
+    if (restaurant.image_url) {
+      const img = getRestaurantImage(restaurant.image_url);
+      if (img) return img;
+    }
+    // Try by name if no explicit url
+    const byName = getRestaurantImage(`${restaurant.name}.jpg`);
+    if (byName) return byName;
+    
+    return defaultImage;
+  });
+
+  useEffect(() => {
+    if (restaurant.image_url) {
+      const img = getRestaurantImage(restaurant.image_url);
+      if (img) {
+        setImgSrc(img);
+        return;
+      }
+    }
+    // Fallback logic if needed or if prop changes
+  }, [restaurant]);
 
   const handleImageError = () => {
     // Fallback to default image if external one fails
-    setImgSrc(defaultImage);
+    if (imgSrc !== defaultImage) {
+      setImgSrc(defaultImage);
+    }
   };
 
   const [isClosing, setIsClosing] = useState(false);
