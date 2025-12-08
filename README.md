@@ -159,10 +159,11 @@ This separation allows for independent scaling. For example, if traffic spikes, 
     - **Deployments**: We defined deployments for Backend (replicas for HA) and Frontend.
     - **Services**:
         - `ClusterIP`: For internal communication (Backend <-> Database).
-        - `NodePort`: For exposing services to the external load balancer.
+        - `NodePort`: For exposing services to the external load balancer (Frontend: 30000, Backend: 30001, Grafana: 30002).
     - **ConfigMaps**: Stores non-sensitive config (e.g., `DB_HOST`, `NODE_ENV`).
     - **Secrets**: Securely stores sensitive data (e.g., `DB_PASSWORD`, `JWT_SECRET`) encoded in base64.
     - **PersistentVolumeClaims (PVC)**: We requested 50GB of block storage from DigitalOcean to ensure PostgreSQL data persists even if the database pod crashes or is rescheduled to a different node.
+    - **Monitoring**: We deployed the **kube-prometheus-stack** to provide comprehensive cluster monitoring. Grafana is exposed via NodePort 30002, allowing administrators to visualize metrics alongside the application.
 - **Registry**: **DigitalOcean Container Registry (DOCR)** stores our private Docker images.
 
 ---
@@ -376,7 +377,8 @@ This project provided invaluable hands-on experience with the full software deve
 **URL**: https://youtu.be/LntkDVGhmWw
 
 ### 10.2 Cloud Deployment
-**URL**: http://142.93.145.130:30000/
+**App URL**: http://142.93.145.130:30000/
+**Monitoring URL**: http://142.93.145.130:30000/ (user: `admin` password: `prom-operator`)
 
 ---
 
