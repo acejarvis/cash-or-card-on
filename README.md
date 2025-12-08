@@ -1,6 +1,6 @@
 # Cash-or-Card-ON: Final Project Report
 
-[![Project Status](https://img.shields.io/badge/status-in%20development-yellow)](https://github.com/acejarvis/cash-or-card-on)
+[![Project Status](https://img.shields.io/badge/status-build%20passing-green)](https://github.com/acejarvis/cash-or-card-on)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## Team Information
