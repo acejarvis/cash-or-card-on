@@ -84,7 +84,7 @@ jobs:
           echo "$changed_files"
           
           # Check if all changed files are markdown
-          non_md_files=$(echo "$changed_files" | grep -v '\.md$' || true)
+          non_md_files=$(echo "$changed_files" | grep -v '\.md$' | grep -v '\.yml$' || true)
           
           if [ -z "$non_md_files" ]; then
             echo "only_markdown=true" >> $GITHUB_OUTPUT
