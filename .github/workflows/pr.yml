@@ -46,7 +46,8 @@ jobs:
                 sql) pattern="\.sql$" label="🗄️ SQL" ;;
                 sh) pattern="\.sh$" label="🐚 Shell" ;;
                 Dockerfile) pattern="Dockerfile" label="🐳 Dockerfile" ;;
-                yaml|yml) pattern="\.(yaml|yml)$" label="⚙️ YAML" ;;
+                yml) pattern="\.yml$" label="⚙️ GitHub Actions" ;;
+                yaml) pattern="\.yaml$" label="⚙️ Kubernetes" ;;
               esac
               
               type_lines=$(git log --author="$author" --pretty=tformat: --numstat | grep "$pattern" | awk '{ add += $1; subs += $2 } END { printf "%d additions, %d deletions", add, subs }')
