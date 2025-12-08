@@ -63,7 +63,11 @@ From a technical perspective, we aimed to demonstrate mastery of the fundamental
 - **Containerization**: Packaging all application components into lightweight, portable Docker containers to ensure consistency across development, testing, and production environments.
 - **Orchestration**: Using **Kubernetes (K8s)** to manage the lifecycle, scaling, and networking of these containers in a production environment.
 - **Infrastructure as Code (IaC)**: Defining infrastructure requirements through declarative configuration files (YAML) to ensure reproducibility and version control of the infrastructure itself.
-- **Monitoring and Observability**: Implementing custom monitoring and logging to gain real-time insights into system performance, resource utilization, and user behavior.
+- **Monitoring and Observability**: Implementing comprehensive monitoring and logging solutions to gain real-time insights into system performance, resource utilization, and user behavior. This includes:
+    - Custom monitoring endpoints exposing system metrics (CPU, memory, uptime)
+    - **Grafana** dashboards for advanced visualization and alerting
+    - Real-time performance tracking and anomaly detection
+    - Integration with DigitalOcean metrics API for infrastructure monitoring
 
 ### 2.3 Advanced Features
 Beyond the core requirements, we implemented several advanced features to enhance the robustness and professional quality of the platform:
@@ -186,7 +190,7 @@ The restaurant detail page provides a comprehensive view:
 ### 4.3 Community Crowdsourcing & Voting
 The platform relies on crowdsourcing.
 - **Cash Discount**: Registered users can propose new cash discounts.
-- **Payment Method**: Registered users can submit changes regarding payment methods, such as Amex is not accepted.
+- **Payment Method**: Registered users can submit changes regarding payment methods, such as reporting that Amex is not accepted.
 
 ### 4.4 User Management & RBAC
 We implemented strict **Role-Based Access Control (RBAC)**:
@@ -220,6 +224,12 @@ To meet the course's observability requirements, we built a custom monitoring so
 | **Admin** | admin@cash-or-card.com | admin123 |
 | **User**  | user@cash-or-card.com  | user123  |
 
+**Grafana Monitoring Access:**
+
+| Service   | URL                             | Username | Password      |
+|-----------|---------------------------------|----------|---------------|
+| **Grafana** | http://142.93.145.130:30002   | admin    | prom-operator |
+
 ### 5.2 Searching for Restaurants
 1.  **Home Page**: You are greeted with a search bar and a list of trending restaurants.
 2.  **Search**: Type "Ramen" or "Spadina" into the search bar. The list updates in real-time.
@@ -230,7 +240,7 @@ To meet the course's observability requirements, we built a custom monitoring so
 1.  **Vote on Payment Methods**:
     - Open a restaurant's detail page.
     - You will see a list of payment methods (e.g., Visa, Cash).
-    - You can mark a payment method as accepted or not accpeted.
+    - You can mark a payment method as accepted or not accepted.
 2.  **Submit Cash Discount**:
     - On the restaurant detail page, look for the Cash Discount section.
     - Click "Add Discount" to report a new deal.
@@ -248,7 +258,12 @@ To meet the course's observability requirements, we built a custom monitoring so
     - **Edit**: Select a restaurant to update its details (address, hours, etc.).
     - **Delete**: Remove a restaurant from the platform if it has closed or is a duplicate.
 
----
+### 5.5 Grafana Monitoring Dashboard
+Grafana provides advanced infrastructure monitoring and visualization for the Kubernetes cluster, including real-time metrics for CPU, memory, pod health, and network traffic.
+
+**Access**: Navigate to http://142.93.145.130:30002 and login with username: `admin`, password: `prom-operator`
+
+------
 
 ## 6. Development Guide
 
@@ -327,8 +342,8 @@ Our deployment is fully automated via **GitHub Actions**, ensuring a robust CI/C
     - The **Backend** Docker image is built and pushed to the DigitalOcean Container Registry (DOCR).
     - The **Frontend** Docker image is built. Crucially, we dynamically inject the backend API URL (using the Kubernetes Node IP) as a build argument (`REACT_APP_API_BASE`). This ensures the frontend knows where to send requests in the production environment.
 
-### 7.3 Infrastructure Configuration
-The infrastructure is defined in the `do-k8s/` directory:
+### 7.2 Infrastructure Configuration
+The infrastructure is defined in the `k8s/` directory:
 - `backend.yaml`: Defines the Deployment (1 replica) and Service (NodePort 30001). It includes Liveness and Readiness probes to ensure traffic is only sent to healthy pods.
 - `frontend.yaml`: Defines the Deployment (1 replica) and Service (NodePort 30000).
 - `postgres.yaml`: Defines a **StatefulSet** (instead of Deployment) for the database. This is critical for stateful applications. It mounts a **PersistentVolumeClaim (PVC)** to `/var/lib/postgresql/data`, ensuring data survives pod restarts.
