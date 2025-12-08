@@ -113,16 +113,19 @@ doctl kubernetes cluster kubeconfig save "$DO_CLUSTER_ID" --expiry-seconds 600
 echo -e "${GREEN}  ✓ kubectl configured${NC}"
 
 # =============================================================================
-# Get Kubernetes Node Public IP
+# Get Kubernetes Node Public IP and Droplet ID
 # =============================================================================
-echo -e "\n${BLUE}🌐 Getting Kubernetes Node Public IP...${NC}"
+echo -e "\n${BLUE}🌐 Getting Kubernetes Node Public IP and Droplet ID...${NC}"
 
+# Get Node Name
+NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
+
+# Get Node IP
 NODE_IP=$(kubectl get nodes -o jsonpath='{.items[0].status.addresses[?(@.type=="ExternalIP")].address}')
 
 # Fallback: If ExternalIP is not available, try to get it from DigitalOcean API
 if [ -z "$NODE_IP" ]; then
     echo -e "${YELLOW}  ⚠ ExternalIP not found via kubectl, trying doctl...${NC}"
-    NODE_NAME=$(kubectl get nodes -o jsonpath='{.items[0].metadata.name}')
     NODE_IP=$(doctl compute droplet list --format Name,PublicIPv4 --no-header | grep "$NODE_NAME" | awk '{print $2}')
 fi
 
@@ -132,6 +135,21 @@ if [ -z "$NODE_IP" ]; then
 fi
 
 echo -e "${GREEN}  ✓ Detected Node IP: $NODE_IP${NC}"
+
+# Get Droplet ID
+DROPLET_ID=$(doctl compute droplet list --format Name,ID --no-header | grep "$NODE_NAME" | awk '{print $2}')
+
+if [ -z "$DROPLET_ID" ]; then
+     echo -e "${YELLOW}  ⚠ Could not determine Droplet ID by name, trying by IP...${NC}"
+     DROPLET_ID=$(doctl compute droplet list --format PublicIPv4,ID --no-header | grep "$NODE_IP" | awk '{print $2}')
+fi
+
+if [ -z "$DROPLET_ID" ]; then
+    echo -e "${RED}  ✗ Could not determine Droplet ID${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}  ✓ Detected Droplet ID: $DROPLET_ID${NC}"
 
 # =============================================================================
 # Build and Push Docker Images
@@ -174,6 +192,8 @@ sed -i "s|<DB_IMAGE>|$REGISTRY/cash-or-card-db:$TAG|g" "$TEMP_DIR/postgres.yaml"
 # Auto-configure CORS and API URL using node IP
 sed -i "s|<CORS_ORIGIN>|http://$NODE_IP:30001|g" "$TEMP_DIR/configmap.yaml"
 sed -i "s|<REACT_APP_API_URL>|http://$NODE_IP:30001|g" "$TEMP_DIR/configmap.yaml"
+sed -i "s|<DO_DROPLET_ID>|$DROPLET_ID|g" "$TEMP_DIR/configmap.yaml"
+sed -i "s|<DO_API_TOKEN>|$DIGITALOCEAN_ACCESS_TOKEN|g" "$TEMP_DIR/configmap.yaml"
 
 # Set secrets
 sed -i "s|<POSTGRES_PASSWORD>|$POSTGRES_PASSWORD|g" "$TEMP_DIR/secrets.yaml"

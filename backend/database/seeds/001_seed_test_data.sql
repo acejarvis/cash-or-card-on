@@ -9,7 +9,12 @@
 INSERT INTO users (id, email, username, password_hash, role, is_active, email_verified) VALUES
     ('550e8400-e29b-41d4-a716-446655440001', 'admin@cash-or-card.com', 'admin', '$2b$10$PccCGQEKV6FjozMASuXeXuSRNA1MmQJE61LwH5hLmmnbZxrk/HSBK', 'admin', true, true),
     ('550e8400-e29b-41d4-a716-446655440002', 'user@cash-or-card.com', 'user', '$2b$10$ZAWE3D7N/KrNOPxywWTQ2uNtW1zxD7oFejpxFSdytNP.qPFzs1Yk6', 'registered', true, true),
-    ('550e8400-e29b-41d4-a716-446655440003', 'contributor@cash-or-card.com', 'contributor', '$2b$10$DAJo0QSXOwYFsu5hjvvoB.6z/q5zAMijmtZ6Av.ssCTqe45i7Kc5.', 'registered', true, true);
+    ('550e8400-e29b-41d4-a716-446655440003', 'contributor@cash-or-card.com', 'contributor', '$2b$10$DAJo0QSXOwYFsu5hjvvoB.6z/q5zAMijmtZ6Av.ssCTqe45i7Kc5.', 'registered', true, true),
+    ('550e8400-e29b-41d4-a716-446655440004', 'foodie1@cash-or-card.com', 'user', '$2b$10$ZAWE3D7N/KrNOPxywWTQ2uNtW1zxD7oFejpxFSdytNP.qPFzs1Yk6', 'registered', true, true),
+    ('550e8400-e29b-41d4-a716-446655440005', 'foodie2@cash-or-card.com', 'user', '$2b$10$ZAWE3D7N/KrNOPxywWTQ2uNtW1zxD7oFejpxFSdytNP.qPFzs1Yk6', 'registered', true, true),
+    ('550e8400-e29b-41d4-a716-446655440006', 'foodie3@cash-or-card.com', 'user', '$2b$10$ZAWE3D7N/KrNOPxywWTQ2uNtW1zxD7oFejpxFSdytNP.qPFzs1Yk6', 'registered', true, true),
+    ('550e8400-e29b-41d4-a716-446655440007', 'foodie4@cash-or-card.com', 'user', '$2b$10$ZAWE3D7N/KrNOPxywWTQ2uNtW1zxD7oFejpxFSdytNP.qPFzs1Yk6', 'registered', true, true),
+    ('550e8400-e29b-41d4-a716-446655440008', 'foodie5@cash-or-card.com', 'user', '$2b$10$ZAWE3D7N/KrNOPxywWTQ2uNtW1zxD7oFejpxFSdytNP.qPFzs1Yk6', 'registered', true, true);
 
 -- Create test restaurants (based on real examples from proposal)
 INSERT INTO restaurants (id, name, address, city, province, postal_code, phone, category, cuisine_tags, operating_hours, is_verified, verified_by, verified_at, data_source, image_url) VALUES
@@ -258,3 +263,59 @@ UPDATE cash_discounts SET confidence_score = calculate_confidence_score(upvotes,
 INSERT INTO audit_logs (entity_type, entity_id, action, performed_by, new_values, ip_address, notes) VALUES
     ('restaurant', '650e8400-e29b-41d4-a716-446655440001', 'CREATE', '550e8400-e29b-41d4-a716-446655440010', '{"name": "Ichiban Japanese Restaurant", "city": "Scarborough"}'::jsonb, '192.168.1.100', 'Initial restaurant submission'),
     ('restaurant', '650e8400-e29b-41d4-a716-446655440001', 'VERIFY', '550e8400-e29b-41d4-a716-446655440001', '{"is_verified": true}'::jsonb, '192.168.1.50', 'Admin verified restaurant data');
+
+-- Insert restaurant ratings
+INSERT INTO restaurant_ratings (restaurant_id, user_id, rating, comment) VALUES
+    -- Haidilao Hot Pot Scarborough (Avg 4.3)
+    ('650e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440001', 5, 'Excellent service and food quality!'),
+    ('650e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440002', 4, 'Great hotpot, but a bit pricey.'),
+    ('650e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655440003', 4, 'Good experience overall.'),
+    
+    -- Hanyang Jokbal (Avg 4.8)
+    ('650e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440002', 5, 'Best Jokbal in town!'),
+    ('650e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440003', 5, 'Authentic taste, highly recommended.'),
+    ('650e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440004', 5, 'Absolutely delicious.'),
+    ('650e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440005', 5, 'Will come back again.'),
+    ('650e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655440006', 4, 'Very good but busy.'),
+
+    -- Hao Xiong Di Chinese BBQ (Avg 3.8)
+    ('650e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440001', 4, 'Good BBQ skewers.'),
+    ('650e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440003', 4, 'Nice place for late night snacks.'),
+    ('650e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440004', 4, 'Decent food.'),
+    ('650e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440005', 4, 'Good value.'),
+    ('650e8400-e29b-41d4-a716-446655440003', '550e8400-e29b-41d4-a716-446655440006', 3, 'Average service.'),
+
+    -- Katsuya (Avg 4.2)
+    ('650e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440001', 5, 'Love their cheese katsu!'),
+    ('650e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440002', 4, 'Very crispy and delicious.'),
+    ('650e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440004', 4, 'Good portion size.'),
+    ('650e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440005', 4, 'Tasty sauce.'),
+    ('650e8400-e29b-41d4-a716-446655440004', '550e8400-e29b-41d4-a716-446655440006', 4, 'Solid katsu place.'),
+
+    -- Lala Spicy Food (Avg 4.6)
+    ('650e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440002', 4, 'Spicy and flavorful.'),
+    ('650e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440003', 5, 'My favorite spot for Szechuan food.'),
+    ('650e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440004', 5, 'Authentic spice level.'),
+    ('650e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440005', 5, 'Great dishes.'),
+    ('650e8400-e29b-41d4-a716-446655440005', '550e8400-e29b-41d4-a716-446655440006', 4, 'Good but oily.'),
+
+    -- Mandarin Restaurant (Avg 3.8)
+    ('650e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440001', 4, 'Great buffet selection.'),
+    ('650e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440002', 4, 'Good for family gatherings.'),
+    ('650e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440004', 4, 'Lots of choices.'),
+    ('650e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440005', 4, 'Always full.'),
+    ('650e8400-e29b-41d4-a716-446655440006', '550e8400-e29b-41d4-a716-446655440006', 3, 'Quality varies.'),
+
+    -- Omiwol Korean BBQ (Avg 4.4)
+    ('650e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440003', 5, 'High quality meat.'),
+    ('650e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440001', 4, 'Nice atmosphere.'),
+    ('650e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440004', 5, 'Great service.'),
+    ('650e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440005', 4, 'Good side dishes.'),
+    ('650e8400-e29b-41d4-a716-446655440007', '550e8400-e29b-41d4-a716-446655440006', 4, 'A bit expensive.'),
+
+    -- Smash Kitchen and Bar (Avg 4.8)
+    ('650e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440002', 5, 'Amazing burgers!'),
+    ('650e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440003', 5, 'Great place for brunch.'),
+    ('650e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440004', 5, 'Love the patio.'),
+    ('650e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440005', 5, 'Desserts are top notch.'),
+    ('650e8400-e29b-41d4-a716-446655440008', '550e8400-e29b-41d4-a716-446655440006', 4, 'Good drinks.');
