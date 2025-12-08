@@ -8,7 +8,6 @@ on:
       - 'backend/**'
       - 'frontend/**'
       - 'k8s/**'
-      - '.github/workflows/**'
 
 jobs:
   build-and-deploy:  

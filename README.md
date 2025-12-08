@@ -65,6 +65,7 @@ From a technical perspective, we aimed to demonstrate mastery of the fundamental
 - **Infrastructure as Code (IaC)**: Defining infrastructure requirements through declarative configuration files (YAML) to ensure reproducibility and version control of the infrastructure itself.
 - **Monitoring and Observability**: Implementing comprehensive monitoring and logging solutions to gain real-time insights into system performance, resource utilization, and user behavior. This includes:
     - Custom monitoring endpoints exposing system metrics (CPU, memory, uptime)
+    - **Prometheus** for overall resource metrics on the kubernetes cluster
     - **Grafana** dashboards for advanced visualization and alerting
     - Real-time performance tracking and anomaly detection
     - Integration with DigitalOcean metrics API for infrastructure monitoring
