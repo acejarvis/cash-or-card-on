@@ -32,6 +32,7 @@ CREATE TABLE restaurants (
     verified_at TIMESTAMP WITH TIME ZONE,
     data_source VARCHAR(50) NOT NULL DEFAULT 'user_submission', -- user_submission, yelp, google_maps
     external_id VARCHAR(255), -- ID from external source (Yelp/Google)
+    image_url VARCHAR(255),
     
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,

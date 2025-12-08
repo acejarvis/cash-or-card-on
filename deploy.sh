@@ -183,6 +183,28 @@ sed -i "s|<DO_API_TOKEN>|$DIGITALOCEAN_ACCESS_TOKEN|g" "$TEMP_DIR/secrets.yaml"
 echo -e "${GREEN}  ✓ Deployment files prepared in $TEMP_DIR${NC}"
 
 # =============================================================================
+# Clean up previous deployment
+# =============================================================================
+echo -e "\n${BLUE}🧹 Cleaning up previous deployments and data...${NC}"
+
+# Delete deployments
+kubectl delete deployment backend frontend postgres --ignore-not-found
+
+# Delete services
+kubectl delete service backend frontend postgres --ignore-not-found
+
+# Delete configmaps and secrets
+kubectl delete configmap cash-or-card-config --ignore-not-found
+kubectl delete secret cash-or-card-secrets --ignore-not-found
+
+# Delete PVC and PV to clear DB data
+echo -e "${YELLOW}  ⚠ Deleting Persistent Volume Claims (DB Data)...${NC}"
+kubectl delete pvc postgres-pvc --ignore-not-found
+kubectl delete pv postgres-pv --ignore-not-found
+
+echo -e "${GREEN}  ✓ Cleanup complete${NC}"
+
+# =============================================================================
 # Deploy to Kubernetes
 # =============================================================================
 echo -e "\n${BLUE}🚀 Deploying to Kubernetes...${NC}"
