@@ -377,8 +377,8 @@ This project provided invaluable hands-on experience with the full software deve
 **URL**: https://youtu.be/LntkDVGhmWw
 
 ### 10.2 Cloud Deployment
-**App URL**: http://142.93.145.130:30000/
-**Monitoring URL**: http://142.93.145.130:30000/ (user: `admin` password: `prom-operator`)
+* **App URL**: http://142.93.145.130:30000/
+* **Monitoring URL**: http://142.93.145.130:30000/ (user: `admin` password: `prom-operator`)
 
 ---
 
