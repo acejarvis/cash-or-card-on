@@ -302,7 +302,7 @@ cash-or-card-on/
 │   │   ├── utils/            # Helper functions
 │   │   └── App.js            # Main app component
 │   └── Dockerfile
-├── do-k8s/                   # Kubernetes manifests
+├── k8s/                      # Kubernetes manifests
 ├── docs/                     # Documentation
 └── docker-compose.yml        # Service orchestration
 ```
@@ -329,7 +329,7 @@ Our deployment is fully automated via **GitHub Actions**, ensuring a robust CI/C
     - The **Frontend** Docker image is built. Crucially, we dynamically inject the backend API URL (using the Kubernetes Node IP) as a build argument (`REACT_APP_API_BASE`). This ensures the frontend knows where to send requests in the production environment.
 
 ### 7.3 Infrastructure Configuration
-The infrastructure is defined in the `do-k8s/` directory:
+The infrastructure is defined in the `k8s/` directory:
 - `backend.yaml`: Defines the Deployment (1 replica) and Service (NodePort 30001). It includes Liveness and Readiness probes to ensure traffic is only sent to healthy pods.
 - `frontend.yaml`: Defines the Deployment (1 replica) and Service (NodePort 30000).
 - `postgres.yaml`: Defines a **StatefulSet** (instead of Deployment) for the database. This is critical for stateful applications. It mounts a **PersistentVolumeClaim (PVC)** to `/var/lib/postgresql/data`, ensuring data survives pod restarts.
@@ -340,7 +340,7 @@ The infrastructure is defined in the `do-k8s/` directory:
 ## 8. Individual Contributions
 
 ### Jarvis Wang
-- **Infrastructure Architect**: Designed and implemented the entire Kubernetes infrastructure on DigitalOcean. Wrote all K8s manifests (`deployment`, `service`, `statefulset`, `pvc`, `ingress`) and configured the cluster networking.
+- **Infrastructure Architect**: Designed and implemented the entire Kubernetes infrastructure on DigitalOcean. Wrote all K8s manifests (`deployment`, `service`, `statefulset`, `pvc`, `ingress`), configured the cluster networking and set up Prometheus/Grafana monitoring.
 - **DevOps Engineer**: Built the CI/CD pipeline using GitHub Actions. Solved complex issues related to dynamic environment variable injection during the Docker build process.
 - **Backend Core**: Set up the initial Node.js/Express server structure. Implemented the database connection logic using `pg-pool` and handled environment configuration management.
 - **Database Administrator**: Designed the initial database schema and wrote the SQL migration scripts. Managed database security and user roles.
